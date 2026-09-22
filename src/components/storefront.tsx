@@ -267,13 +267,16 @@ export function Storefront({
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative mx-auto flex h-full w-full max-w-7xl items-center px-6 md:px-10">
-          <div>
+          <div className="max-w-2xl">
             <p className="text-sm font-semibold tracking-[0.08em] text-blue-200 drop-shadow-sm sm:text-base">
-              Collect gallery-quality images and fine art prints.
+              Original fine art photography for modern interiors
             </p>
-            <p className="mt-2 max-w-xl text-xs uppercase tracking-[0.1em] text-orange-100 sm:text-sm">
-              All images are original works by Malcolm Rose, curated for Pixel
-              or Paper.
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-white drop-shadow-md md:text-6xl">
+              Fine art photography prints by Malcolm Rose
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-orange-50/95 sm:text-base">
+              Discover landscape, cityscape, architectural, and nature artwork
+              designed to bring calm, texture, and story to your walls.
             </p>
           </div>
         </div>

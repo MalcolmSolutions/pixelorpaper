@@ -7,6 +7,7 @@ import { GoogleAnalytics } from "@/components/analytics";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { WebVitalsReporter } from "@/components/web-vitals";
 import { ImageSecurityWrapper } from "@/components/image-security-wrapper";
+import { siteSeo } from "@/lib/seo";
 
 const heading = Syne({
   subsets: ["latin"],
@@ -26,30 +27,23 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Pixel or Paper | Fine Art Photography Prints",
+    default: siteSeo.defaultTitle,
     template: "%s | Pixel or Paper",
   },
-  description:
-    "Shop curated fine art photography prints by Malcolm Rose across landscapes, cityscapes, buildings, nature, and more.",
-  keywords: [
-    "fine art prints",
-    "photography prints",
-    "wall art",
-    "landscape photography",
-    "cityscape photography",
-    "nature prints",
-    "Pixel or Paper",
-    "Malcolm Rose",
-  ],
+  description: siteSeo.defaultDescription,
+  keywords: siteSeo.keywords,
+  applicationName: "Pixel or Paper",
+  authors: [{ name: "Malcolm Rose" }],
+  creator: "Malcolm Rose",
+  publisher: siteSeo.legalName,
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Pixel or Paper | Fine Art Photography Prints",
-    description:
-      "Discover curated fine art photography prints by Malcolm Rose and collect timeless imagery for your space.",
+    title: siteSeo.defaultTitle,
+    description: siteSeo.defaultDescription,
     url: "/",
-    siteName: "Pixel or Paper",
+    siteName: siteSeo.name,
     images: [
       {
         url: "/images/pixelorpaperLogo.png",
@@ -61,10 +55,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pixel or Paper | Fine Art Photography Prints",
-    description:
-      "Shop curated fine art photography prints by Malcolm Rose across landscapes, cityscapes, buildings, and nature.",
+    title: siteSeo.defaultTitle,
+    description: siteSeo.defaultDescription,
     images: ["/images/pixelorpaperLogo.png"],
+    creator: "@pixelorpaper",
   },
   robots: {
     index: true,

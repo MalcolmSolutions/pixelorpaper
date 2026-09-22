@@ -1,5 +1,67 @@
 import type { Product } from "@/types/product";
 
+export const siteSeo = {
+  name: "Pixel or Paper",
+  legalName: "Pixel or Paper by Malcolm Rose",
+  defaultTitle: "Fine Art Photography Prints | Pixel or Paper",
+  defaultDescription:
+    "Buy original fine art photography prints by Malcolm Rose, including landscape, cityscape, architecture, and nature artwork for modern interiors.",
+  keywords: [
+    "fine art photography prints",
+    "original photography prints",
+    "landscape photography prints",
+    "cityscape wall art",
+    "architectural photography prints",
+    "nature photography prints",
+    "modern wall art",
+    "Malcolm Rose photography",
+    "Pixel or Paper",
+  ],
+};
+
+export const categorySeo = {
+  Landscapes: {
+    slug: "landscapes",
+    title: "Landscape Photography Prints",
+    description:
+      "Buy landscape photography prints by Malcolm Rose, from quiet coastlines to dramatic mountain skies and atmospheric rural scenes.",
+  },
+  Cityscapes: {
+    slug: "cityscapes",
+    title: "Cityscape Photography Prints",
+    description:
+      "Shop cityscape photography prints featuring reflective streets, architecture, and urban atmosphere from Malcolm Rose.",
+  },
+  Buildings: {
+    slug: "buildings",
+    title: "Architectural Photography Prints",
+    description:
+      "Browse architectural photography prints and building studies that celebrate quiet geometry, texture, and light.",
+  },
+  Nature: {
+    slug: "nature",
+    title: "Nature Photography Prints",
+    description:
+      "Find nature photography prints with woodland, organic textures, and quiet natural scenes for calm, modern interiors.",
+  },
+  Misc: {
+    slug: "misc",
+    title: "Collectible Photography Prints",
+    description:
+      "Discover unique collectible photography prints and atmospheric studies curated for thoughtful interior styling.",
+  },
+} as const;
+
+export function getCategorySeo(category: string) {
+  return (
+    categorySeo[category as keyof typeof categorySeo] ?? {
+      slug: category.toLowerCase().replace(/\s+/g, "-"),
+      title: `${category} Photography Prints`,
+      description: `Browse ${category.toLowerCase()} photography prints by Malcolm Rose for original wall art and modern interiors.`,
+    }
+  );
+}
+
 const ignoredTokens = new Set([
   "img",
   "image",
@@ -49,6 +111,15 @@ function getFilenameKeywords(imagePath: string, title: string): string[] {
   return Array.from(new Set(tokens))
     .slice(0, 3)
     .map((token) => toTitleCase(token));
+}
+
+export function getProductSeoDescription(
+  product: Pick<
+    Product,
+    "title" | "artist" | "category" | "description" | "size"
+  >,
+): string {
+  return `${product.title} by ${product.artist}. ${product.description} Available as a ${product.category.toLowerCase()} fine art print in ${product.size}.`;
 }
 
 export function getProductAltText(

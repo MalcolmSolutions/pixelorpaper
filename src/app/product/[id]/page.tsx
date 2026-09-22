@@ -7,7 +7,7 @@ import { ProductImage } from "@/components/product-image";
 import { ProductViewTracker } from "@/components/product-view-tracker";
 import { getCatalogProducts } from "@/lib/catalog";
 import { resolveProductImage } from "@/lib/images";
-import { getProductAltText } from "@/lib/seo";
+import { getProductAltText, getProductSeoDescription } from "@/lib/seo";
 
 // Note: R2 catalog loading is optional; will use fallback if unavailable
 export const runtime = "edge";
@@ -37,13 +37,20 @@ export async function generateMetadata({
 
   return {
     title: `${product.title} Print`,
-    description: `${product.title} by ${product.artist}. ${product.description}`,
+    description: getProductSeoDescription(product),
+    keywords: [
+      product.title,
+      product.artist,
+      `${product.category} photography print`,
+      `${product.title} fine art print`,
+      "Pixel or Paper art",
+    ],
     alternates: {
       canonical: pagePath,
     },
     openGraph: {
       title: `${product.title} | Pixel or Paper`,
-      description: `${product.description} Available as a fine art print.`,
+      description: getProductSeoDescription(product),
       type: "website",
       url: pagePath,
       images: [
@@ -56,7 +63,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: `${product.title} | Pixel or Paper`,
-      description: `${product.description} Available as a fine art print.`,
+      description: getProductSeoDescription(product),
       images: [imageUrl],
     },
   };

@@ -9,9 +9,24 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Fine Art Photography Prints",
   description:
-    "Browse a curated catalog of fine art photography prints by Malcolm Rose across landscapes, cityscapes, buildings, nature, and miscellaneous collections.",
+    "Browse original fine art photography prints by Malcolm Rose, featuring landscape, cityscape, architectural, and nature artwork for modern interiors.",
+  keywords: [
+    "fine art photography prints",
+    "original landscape prints",
+    "cityscape wall art",
+    "nature photography print",
+    "Malcolm Rose art",
+    "modern wall decor",
+  ],
   alternates: {
     canonical: "/",
+  },
+  openGraph: {
+    title: "Fine Art Photography Prints | Pixel or Paper",
+    description:
+      "Discover original landscape, cityscape, and nature photography prints by Malcolm Rose for contemporary interiors.",
+    url: "/",
+    locale: "en_GB",
   },
 };
 
@@ -57,7 +72,57 @@ export default async function HomePage({
     },
   };
 
-  const jsonLdScripts = [websiteJsonLd, organizationJsonLd];
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Fine Art Photography Prints",
+    description:
+      "Curated fine art photography prints by Malcolm Rose, including landscape, cityscape, architectural, and nature imagery.",
+    url: siteUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Pixel or Paper",
+      url: siteUrl,
+    },
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        question: "What kind of art is sold at Pixel or Paper?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Pixel or Paper sells original contemporary fine art photography prints by Malcolm Rose, including landscape, cityscape, architectural, and nature photography.",
+        },
+      },
+      {
+        "@type": "Question",
+        question: "Do you offer wall art for modern interiors?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Each print is selected for contemporary interiors, with a mix of calm, textural, and architectural work suited to homes, studios, and creative spaces.",
+        },
+      },
+      {
+        "@type": "Question",
+        question: "Is it possible to buy a print in different sizes?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. The catalog includes a range of print sizes and formats, with details available on each product page before checkout.",
+        },
+      },
+    ],
+  };
+
+  const jsonLdScripts = [
+    websiteJsonLd,
+    organizationJsonLd,
+    collectionJsonLd,
+    faqJsonLd,
+  ];
 
   return (
     <>
