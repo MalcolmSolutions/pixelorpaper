@@ -1,3 +1,8 @@
 name = "pixelorpaper"
+main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
-pages_build_output_dir = ".open-next"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
