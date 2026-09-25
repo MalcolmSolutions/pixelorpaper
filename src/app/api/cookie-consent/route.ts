@@ -5,8 +5,6 @@ import {
   type CookieConsentChoice,
 } from "@/lib/cookie-consent";
 
-export const runtime = "edge";
-
 function isValidChoice(value: string | null): value is CookieConsentChoice {
   return value === "accepted" || value === "rejected";
 }

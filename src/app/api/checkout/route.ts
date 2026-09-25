@@ -8,8 +8,6 @@ import {
 } from "@/lib/purchase";
 
 // Note: R2 catalog loading is optional; will use fallback if unavailable
-export const runtime = "edge";
-
 type Payload = {
   items?: Array<{
     productId: string;

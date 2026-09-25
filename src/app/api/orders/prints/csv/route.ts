@@ -1,7 +1,5 @@
 import { getStripeClientEntries } from "@/lib/stripe-sessions";
 
-export const runtime = "edge";
-
 type CsvRow = {
   stripeSessionId: string;
   paidAt: string;

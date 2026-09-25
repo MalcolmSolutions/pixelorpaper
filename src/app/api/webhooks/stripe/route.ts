@@ -1,7 +1,5 @@
 import Stripe from "stripe";
 
-export const runtime = "edge";
-
 export async function POST(req: Request) {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;

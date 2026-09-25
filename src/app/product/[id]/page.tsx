@@ -10,7 +10,6 @@ import { resolveProductImage } from "@/lib/images";
 import { getProductAltText, getProductSeoDescription } from "@/lib/seo";
 
 // Note: R2 catalog loading is optional; will use fallback if unavailable
-export const runtime = "edge";
 export const revalidate = 3600;
 
 export async function generateMetadata({

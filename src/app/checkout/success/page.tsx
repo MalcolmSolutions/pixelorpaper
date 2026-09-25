@@ -5,8 +5,6 @@ import { SuccessContent } from "@/components/checkout-success-content";
 import { retrievePaidCheckoutSession } from "@/lib/stripe-sessions";
 
 // Note: R2 operations are optional; will gracefully handle if unavailable
-export const runtime = "edge";
-
 type SuccessPageProps = {
   searchParams: Promise<{ session_id?: string }>;
 };
