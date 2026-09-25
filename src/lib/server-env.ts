@@ -1,12 +1,6 @@
 import "server-only";
 
-const cloudflareRequestContextSymbol = Symbol.for(
-  "__cloudflare-request-context__",
-);
-
-type CloudflareRequestContext = {
-  env?: Record<string, unknown>;
-};
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 function clean(value: unknown): string | undefined {
   if (typeof value !== "string") {
@@ -23,18 +17,10 @@ export function getServerEnv(name: string): string | undefined {
     return fromProcess;
   }
 
-  const context = (globalThis as Record<PropertyKey, unknown>)[
-    cloudflareRequestContextSymbol
-  ] as CloudflareRequestContext | undefined;
-
-  if (!context) {
+  try {
+    const context = getCloudflareContext();
+    return clean((context.env as Record<string, unknown>)[name]);
+  } catch {
     return undefined;
   }
-
-  const envRecord = context.env;
-  if (!envRecord) {
-    return undefined;
-  }
-
-  return clean(envRecord[name]);
 }
