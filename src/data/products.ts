@@ -1,0 +1,48 @@
+import type { Product } from "@/types/product";
+
+export const fallbackProducts: Product[] = [
+  {
+    id: "sunset-canyon",
+    title: "Sunset Canyon",
+    artist: "A. Morgan",
+    description: "Warm sandstone textures with a long-exposure sky fade.",
+    category: "Landscapes",
+    priceCents: 8920,
+    image: "/images/sunset-canyon.svg",
+    downloadKey: "images/sunset-canyon.svg",
+    size: "24 x 16 in",
+  },
+  {
+    id: "city-veil",
+    title: "City Veil",
+    artist: "N. Rojas",
+    description: "A rainy downtown framed through reflective glass.",
+    category: "Cityscapes",
+    priceCents: 11620,
+    image: "/images/city-veil.svg",
+    downloadKey: "images/city-veil.svg",
+    size: "20 x 30 in",
+  },
+  {
+    id: "drift-memory",
+    title: "Drift Memory",
+    artist: "L. Chen",
+    description: "Monochrome wave motion blended with hand-drawn grain.",
+    category: "Misc",
+    priceCents: 7820,
+    image: "/images/drift-memory.svg",
+    downloadKey: "images/drift-memory.svg",
+    size: "18 x 18 in",
+  },
+  {
+    id: "forest-hum",
+    title: "Forest Hum",
+    artist: "K. Singh",
+    description: "Morning fog weaving through cedar lines and soft light.",
+    category: "Nature",
+    priceCents: 9620,
+    image: "/images/forest-hum.svg",
+    downloadKey: "images/forest-hum.svg",
+    size: "24 x 24 in",
+  },
+];
