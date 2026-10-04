@@ -1,26 +1,375 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------
+   Design tokens
+   Single light theme: the brand palette is built around a soft white
+   canvas, so there is intentionally no dark mode.
+   ------------------------------------------------------------------ */
+@theme {
+  /* Disable Tailwind's default palette so only brand colours exist. */
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Brand palette */
+  --color-canvas: #f9f9f9; /* Soft White: page background */
+  --color-surface: #ffffff; /* raised surfaces: header, inputs, cards */
+  --color-ink: #2e2e2e; /* Charcoal: text, primary buttons */
+  --color-ink-muted: #6b6b6b; /* secondary text (passes AA on canvas) */
+  --color-line: #d9d9d9; /* Warm Grey: borders, dividers, accents */
+  --color-sand: #e8dcc8; /* Muted Sand: highlight */
+  --color-sand-light: #f3ede3; /* tint for image wells / hovers */
+  --color-sage: #c7d3c0; /* Dusty Green: nature collections only */
+
+  /* Semantic aliases */
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+
+  /* Typography */
+  --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Fluid heading scale */
+  --text-display: clamp(2.25rem, 1.6rem + 2.6vw, 3.75rem);
+  --text-display--line-height: 1.05;
+  --text-h1: clamp(1.875rem, 1.5rem + 1.5vw, 2.75rem);
+  --text-h1--line-height: 1.1;
+  --text-h2: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --text-h2--line-height: 1.2;
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.35;
+
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.12em;
+
+  /* Shape: near-square corners, as in gallery/print retail */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Layout widths */
+  --container-page: 90rem; /* 1440px */
+  --container-prose: 40rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Responsive spacing tokens. They live on :root so they can change per
+   breakpoint, and are exposed as utilities via @theme inline
+   (px-gutter, py-section, gap-grid, ...). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Room mockup illustration colours (shared by RoomMockup and media-well). */
+  --wall-sand: #efe6d8;
+  --wall-grey: #e6e3de;
+  --wall-sage: #dde4d6;
+  --wall-white: #f3f1ed;
+  --floor-oak: #c9a983;
+  --floor-seam: #bf9e77;
+  --skirting: #f6f3ee;
+
+  --gutter: 1rem;
+  --section: 3.5rem;
+  --grid-gap-x: 0.75rem;
+  --grid-gap-y: 2rem;
+  --header-h: 3.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (width >= 48rem) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --gutter: 2rem;
+    --section: 5rem;
+    --grid-gap-x: 1.5rem;
+    --grid-gap-y: 2.5rem;
+    --header-h: 4.5rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (width >= 80rem) {
+  :root {
+    --gutter: 3rem;
+    --section: 7rem;
+  }
+}
+
+@theme inline {
+  --spacing-gutter: var(--gutter);
+  --spacing-section: var(--section);
+  --spacing-grid-x: var(--grid-gap-x);
+  --spacing-grid-y: var(--grid-gap-y);
+  --spacing-header: var(--header-h);
+}
+
+/* ------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------ */
+@layer base {
+  html {
+    @apply bg-canvas text-ink;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Keep anchor targets clear of the sticky header. */
+  [id] {
+    scroll-margin-top: var(--header-h);
+  }
+
+  body {
+    @apply bg-canvas font-sans text-base leading-relaxed text-ink;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading font-medium tracking-tight text-balance text-ink;
+  }
+
+  h1 {
+    @apply text-h1;
+  }
+  h2 {
+    @apply text-h2;
+  }
+  h3 {
+    @apply text-h3;
+  }
+
+  p {
+    @apply text-pretty;
+  }
+
+  hr {
+    @apply border-line;
+  }
+
+  *,
+  ::before,
+  ::after {
+    @apply border-line;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ink;
+  }
+
+  ::selection {
+    @apply bg-sand text-ink;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Layout primitives
+   ------------------------------------------------------------------ */
+
+/* Centred page container with responsive side gutters. */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Vertical rhythm between page sections. */
+@utility section {
+  padding-block: var(--section);
+}
+
+/* Product grid: 2 columns on phones, 3 on tablets, 4 on desktop. */
+@utility product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--grid-gap-x);
+  row-gap: var(--grid-gap-y);
+
+  @media (width >= 48rem) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (width >= 64rem) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Small uppercase label above headings ("eyebrow"). */
+@utility eyebrow {
+  font-family: var(--font-heading);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* Image well: a compact room (wall, skirting, oak floor) matching
+   RoomMockup. Set --wall inline to change the wall colour. Content that
+   hangs on the wall should sit in the top 87%. */
+@utility media-well {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 87%,
+      var(--skirting) 87% 88%,
+      rgb(0 0 0 / 0.08) 88%,
+      var(--floor-oak) 91%
+    ),
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgb(255 255 255 / 0.55),
+      transparent 65%
+    ),
+    var(--wall, var(--wall-sand));
+}
+
+/* Selectable option (filters, builder options). Quieter than .btn so
+   choices never compete with calls to action. Selected state follows
+   aria-pressed / aria-current. */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    border-color 200ms var(--ease-out-soft),
+    background-color 200ms var(--ease-out-soft),
+    color 200ms var(--ease-out-soft);
+
+  &:hover {
+    border-color: var(--color-ink);
+  }
+
+  &[aria-pressed="true"],
+  &[aria-current="page"] {
+    border-color: var(--color-ink);
+    background-color: var(--color-ink);
+    color: var(--color-canvas);
+  }
+}
+
+/* Horizontal scroll-snap row on small screens (use with md:grid etc.).
+   Bleeds to the screen edges so the next item peeks in. */
+@utility snap-row {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+  scrollbar-width: none;
+
+  & > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Buttons & links
+   Rectangular, uppercase, letter-spaced, as in print/gallery retail.
+   Usage: class="btn btn-primary" (optionally + btn-sm / btn-block)
+   ------------------------------------------------------------------ */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding-inline: 1.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-heading);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 200ms var(--ease-out-soft),
+    color 200ms var(--ease-out-soft),
+    border-color 200ms var(--ease-out-soft);
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+@utility btn-sm {
+  min-height: 2.5rem;
+  padding-inline: 1.25rem;
+}
+
+@utility btn-block {
+  width: 100%;
+}
+
+/* Main call to action: solid charcoal. */
+@utility btn-primary {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
+
+  &:hover {
+    background-color: var(--color-black);
+  }
+}
+
+/* Secondary: charcoal outline that fills on hover. */
+@utility btn-outline {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+
+  &:hover {
+    background-color: var(--color-ink);
+    color: var(--color-canvas);
+  }
+}
+
+/* Highlight: muted sand, for promos / featured actions. */
+@utility btn-accent {
+  background-color: var(--color-sand);
+  color: var(--color-ink);
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--color-sand) 85%, var(--color-ink));
+  }
+}
+
+/* Inline text link: underline that thickens on hover. */
+@utility link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 200ms var(--ease-out-soft);
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* Navigation link: no underline until hover/active. */
+@utility nav-link {
+  font-size: var(--text-sm);
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.4em;
+  transition: text-decoration-color 200ms var(--ease-out-soft);
+
+  &:hover,
+  &[aria-current="page"] {
+    text-decoration-color: currentColor;
+  }
 }
