@@ -131,6 +131,23 @@ export async function getObject(
   return signedGet(path, {}, bytes ? { Range: `bytes=0-${bytes - 1}` } : {});
 }
 
+/** Whether an object currently exists, read fresh from the bucket. */
+export async function objectExists(key: string): Promise<boolean> {
+  try {
+    const res = await getObject(key, 1);
+    await res.body?.cancel();
+    return true;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith("R2 request failed: 404")
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 /** Public URL for an object key (for browsers and the image optimiser). */
 export function publicUrl(key: string) {
   const base = env("NEXT_PUBLIC_IMAGE_BASE_URL").replace(/\/$/, "");

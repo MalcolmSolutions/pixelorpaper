@@ -66,7 +66,7 @@ export default async function ProductPage(
           </p>
         )}
         <hr />
-        <SizePicker />
+        <SizePicker productId={product.id} />
       </div>
     </div>
   );

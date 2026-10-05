@@ -1,4 +1,5 @@
 import { getCatalog } from "@/lib/catalog";
+import { objectExists } from "@/lib/r2";
 import type { Orientation, Product, ProductSort } from "@/types/product";
 
 export type ProductQuery = {
@@ -40,4 +41,17 @@ export async function getProductBySlug(
 ): Promise<Product | undefined> {
   const { products } = await getCatalog();
   return products.find((p) => p.slug === slug);
+}
+
+export async function getProductById(id: string): Promise<Product | undefined> {
+  const { products } = await getCatalog();
+  return products.find((p) => p.id === id);
+}
+
+/**
+ * Whether a product's image is still in the bucket, bypassing the hour-long
+ * catalog cache. Used to revalidate stock before checkout.
+ */
+export async function isProductStillAvailable(id: string): Promise<boolean> {
+  return objectExists(id);
 }

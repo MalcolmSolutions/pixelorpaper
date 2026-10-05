@@ -13,3 +13,7 @@ export const PRINT_SIZES: PrintSize[] = [
   { name: "A3", widthMm: 297, heightMm: 420, price: 1899 },
   { name: "A2", widthMm: 420, heightMm: 594, price: 2999 },
 ];
+
+export function getPrintSize(name: string): PrintSize | undefined {
+  return PRINT_SIZES.find((size) => size.name === name);
+}

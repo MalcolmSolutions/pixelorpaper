@@ -1,0 +1,20 @@
+# Cloudflare Workers config (OpenNext), matching main plus the orders database.
+name = "pixelorpaper"
+main = ".open-next/worker.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pixelorpaper-orders"
+# Placeholder until `npx wrangler d1 create pixelorpaper-orders` is run;
+# local development (--local, next dev, preview) does not use it.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[observability.logs]
+enabled = true
