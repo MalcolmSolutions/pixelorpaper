@@ -17,10 +17,13 @@ export function getStripe(): Stripe {
   return client;
 }
 
-/** Absolute site URL for Stripe's redirects back to the store. */
+/**
+ * Absolute site URL for Stripe's redirects back to the store. Read at runtime
+ * (not a NEXT_PUBLIC_ variable, which Next inlines at build time).
+ */
 export function siteUrl(): string {
-  const url = process.env.NEXT_PUBLIC_SITE_URL;
+  const url = process.env.SITE_URL;
   if (url) return url.replace(/\/$/, "");
   if (process.env.NODE_ENV !== "production") return "http://localhost:3000";
-  throw new Error("NEXT_PUBLIC_SITE_URL is not set");
+  throw new Error("SITE_URL is not set");
 }

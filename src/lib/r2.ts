@@ -134,8 +134,9 @@ export async function getObject(
 /** Whether an object currently exists, read fresh from the bucket. */
 export async function objectExists(key: string): Promise<boolean> {
   try {
-    const res = await getObject(key, 1);
-    await res.body?.cancel();
+    // Read the single byte rather than cancelling the body: cancelling can
+    // stall Node's fetch, and the body is only one byte.
+    await (await getObject(key, 1)).arrayBuffer();
     return true;
   } catch (error) {
     if (
