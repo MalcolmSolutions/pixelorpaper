@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SizePicker } from "@/components/products/size-picker";
 import { wallColour } from "@/components/room-mockup";
 import { getCategory } from "@/lib/categories";
 import { getProductBySlug } from "@/lib/products";
@@ -65,9 +66,7 @@ export default async function ProductPage(
           </p>
         )}
         <hr />
-        <button type="button" className="btn btn-primary btn-block" disabled>
-          Add to cart
-        </button>
+        <SizePicker />
       </div>
     </div>
   );
