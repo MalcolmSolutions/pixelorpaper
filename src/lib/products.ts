@@ -9,8 +9,6 @@ export type ProductQuery = {
 
 const SORTERS: Record<ProductSort, ((a: Product, b: Product) => number) | null> = {
   featured: null,
-  "price-asc": (a, b) => a.price - b.price,
-  "price-desc": (a, b) => b.price - a.price,
   name: (a, b) => a.name.localeCompare(b.name),
 };
 

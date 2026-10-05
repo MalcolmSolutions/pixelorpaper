@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { wallColour } from "@/components/room-mockup";
 import { getCategory } from "@/lib/categories";
 import { getProductBySlug } from "@/lib/products";
-import { formatPrice } from "@/lib/utils";
 
 export async function generateMetadata(
   props: PageProps<"/products/[slug]">,
@@ -58,10 +57,6 @@ export default async function ProductPage(
           </Link>
         )}
         <h1>{product.name}</h1>
-        <p className="text-lg">
-          {formatPrice(product.price, product.currency)}{" "}
-          <span className="text-sm text-ink-muted">incl. VAT</span>
-        </p>
         <p className="max-w-prose text-ink-muted">{product.description}</p>
         {product.location && (
           <p className="text-sm">

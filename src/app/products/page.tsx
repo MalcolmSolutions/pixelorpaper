@@ -11,8 +11,6 @@ const PAGE_SIZE = 24;
 
 const SORTS: { value: ProductSort; label: string }[] = [
   { value: "featured", label: "Featured" },
-  { value: "price-asc", label: "Price, low to high" },
-  { value: "price-desc", label: "Price, high to low" },
   { value: "name", label: "Name, A–Z" },
 ];
 

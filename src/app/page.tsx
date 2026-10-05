@@ -1,6 +1,7 @@
 import { BestSellers } from "@/components/home/best-sellers";
 import { FeaturedCollections } from "@/components/home/featured-collections";
 import { Hero } from "@/components/home/hero";
+import { PriceList } from "@/components/home/price-list";
 import { WallBuilder } from "@/components/home/wall-builder";
 import { getCategories } from "@/lib/categories";
 import { getBestSellers, getProducts } from "@/lib/products";
@@ -26,6 +27,7 @@ export default async function Home() {
       <Hero categories={categories} prints={heroPrints} />
       <FeaturedCollections categories={categories} products={products} />
       <BestSellers products={bestSellers} />
+      <PriceList />
       <WallBuilder prints={products.slice(0, 24).map((p) => p.image)} />
     </>
   );

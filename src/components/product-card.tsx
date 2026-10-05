@@ -2,7 +2,6 @@ import Link from "next/link";
 import { FramedPrint } from "@/components/framed-print";
 import { wallColour } from "@/components/room-mockup";
 import { getCategory } from "@/lib/categories";
-import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
 // Frame width as % of the card, by orientation. Tall prints are narrowed
@@ -45,14 +44,9 @@ export async function ProductCard({
           />
         </div>
       </div>
-      <div className="mt-3 flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-        <h3 className="font-sans text-sm font-medium tracking-normal underline-offset-4 group-hover:underline">
-          {product.name}
-        </h3>
-        <p className="shrink-0 text-sm tabular-nums">
-          {formatPrice(product.price, product.currency)}
-        </p>
-      </div>
+      <h3 className="mt-3 font-sans text-sm font-medium tracking-normal underline-offset-4 group-hover:underline">
+        {product.name}
+      </h3>
       <p className="mt-0.5 text-xs text-ink-muted">
         {product.location ?? category?.name}
       </p>

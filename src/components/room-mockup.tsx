@@ -78,6 +78,8 @@ export function RoomMockup({
   galleryWidth = 60,
   photo,
   tintWall = false,
+  galleryScale = 1,
+  zoom = 1,
   preload = false,
   className,
 }: {
@@ -92,6 +94,10 @@ export function RoomMockup({
   photo?: RoomPhoto;
   /** Tint the photo's wall with the `wall` colour. */
   tintWall?: boolean;
+  /** Enlarge the photo's gallery about its bottom centre. */
+  galleryScale?: number;
+  /** Zoom into the photo, keeping its top edge and centring the gallery. */
+  zoom?: number;
   preload?: boolean;
   className?: string;
 }) {
@@ -99,17 +105,23 @@ export function RoomMockup({
     // The photo box keeps the photo's proportions and fills the height,
     // so the gallery stays fixed to the same patch of wall when the sides
     // are cropped. Rooms are always narrower than the photo.
+    const centreX =
+      zoom === 1 ? 50 : photo.gallery.left + photo.gallery.width / 2;
     return (
       <div className={cn("relative overflow-hidden bg-canvas", className)}>
         <div
-          className="absolute top-0 left-1/2 h-full -translate-x-1/2"
-          style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
+          className="absolute top-0 left-1/2"
+          style={{
+            aspectRatio: `${photo.width} / ${photo.height}`,
+            height: `${zoom * 100}%`,
+            transform: `translateX(-${centreX}%)`,
+          }}
         >
           <Image
             src={photo.src}
             alt=""
             fill
-            sizes="(min-width: 64rem) 100vw, 175vw"
+            sizes={`(min-width: 64rem) ${Math.round(100 * zoom)}vw, ${Math.round(175 * zoom)}vw`}
             preload={preload}
             className="object-cover"
           />
@@ -124,11 +136,12 @@ export function RoomMockup({
             prints={prints}
             layout={layout}
             frame={frame}
-            className="absolute"
+            className="absolute origin-bottom transition-transform duration-500 ease-out-soft"
             style={{
               left: `${photo.gallery.left}%`,
               top: `${photo.gallery.top}%`,
               width: `${photo.gallery.width}%`,
+              transform: galleryScale === 1 ? undefined : `scale(${galleryScale})`,
             }}
           />
         </div>

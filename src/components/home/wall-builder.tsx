@@ -7,10 +7,8 @@ import {
   RoomMockup,
   SIDEBOARD_ROOM,
   slotCount,
-  wallColour,
 } from "@/components/room-mockup";
-import { cn } from "@/lib/utils";
-import type { FrameFinish, GalleryLayout, WallTone } from "@/types/room";
+import type { FrameFinish, GalleryLayout } from "@/types/room";
 
 const LAYOUT_OPTIONS: { value: GalleryLayout; label: string }[] = [
   { value: "trio", label: "Trio" },
@@ -19,12 +17,15 @@ const LAYOUT_OPTIONS: { value: GalleryLayout; label: string }[] = [
   { value: "salon", label: "Salon" },
 ];
 
-const WALL_OPTIONS: { value: WallTone; label: string }[] = [
-  { value: "sand", label: "Sand" },
-  { value: "grey", label: "Warm grey" },
-  { value: "sage", label: "Sage" },
-  { value: "white", label: "Off-white" },
-];
+// How much each layout can grow before it overlaps the lamp or vases
+// in the room photo.
+const GALLERY_SCALE: Record<GalleryLayout, number> = {
+  single: 1.35,
+  trio: 1.08,
+  feature: 1.15,
+  grid: 1.35,
+  salon: 1.06,
+};
 
 const FRAME_OPTIONS: { value: FrameFinish; label: string }[] = [
   { value: "black", label: "Black" },
@@ -34,7 +35,6 @@ const FRAME_OPTIONS: { value: FrameFinish; label: string }[] = [
 
 export function WallBuilder({ prints: options }: { prints: Print[] }) {
   const [layout, setLayout] = useState<GalleryLayout>("salon");
-  const [wall, setWall] = useState<WallTone>("grey");
   const [frame, setFrame] = useState<FrameFinish>("black");
   const [offset, setOffset] = useState(0);
 
@@ -55,8 +55,8 @@ export function WallBuilder({ prints: options }: { prints: Print[] }) {
           <p className="eyebrow">Gallery wall builder</p>
           <h2 id="wall-builder-title">Build your own wall</h2>
           <p className="max-w-[44ch] text-ink-muted">
-            Choose a layout, wall colour and frame, then shuffle prints until
-            the arrangement feels like home.
+            Choose a layout and frame, then shuffle prints until the
+            arrangement feels like home.
           </p>
         </div>
 
@@ -65,9 +65,10 @@ export function WallBuilder({ prints: options }: { prints: Print[] }) {
           <RoomMockup
             prints={prints}
             layout={layout}
-            wall={wall}
             frame={frame}
             photo={SIDEBOARD_ROOM}
+            galleryScale={GALLERY_SCALE[layout]}
+            zoom={1.3}
             className="aspect-square sm:aspect-[5/4]"
           />
           <figcaption className="mt-3 flex items-center justify-between gap-4 px-gutter text-sm text-ink-muted sm:px-0">
@@ -97,26 +98,6 @@ export function WallBuilder({ prints: options }: { prints: Print[] }) {
                 >
                   {o.label}
                 </button>
-              ))}
-            </OptionRow>
-
-            <OptionRow label="Wall">
-              {WALL_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  aria-pressed={wall === o.value}
-                  aria-label={o.label}
-                  title={o.label}
-                  onClick={() => setWall(o.value)}
-                  className={cn(
-                    "size-9 rounded-full border transition",
-                    wall === o.value
-                      ? "border-ink ring-2 ring-ink ring-offset-2 ring-offset-sand-light"
-                      : "border-line hover:border-ink",
-                  )}
-                  style={{ backgroundColor: wallColour(o.value) }}
-                />
               ))}
             </OptionRow>
 

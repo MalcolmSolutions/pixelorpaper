@@ -19,7 +19,6 @@ type ImageMetadata = {
   location?: string;
   keywords?: string[];
   resolution?: string;
-  price_gbp?: number;
 };
 
 const IMAGE_EXT = /\.(jpe?g|png|webp)$/i;
@@ -205,7 +204,6 @@ async function buildCatalog(): Promise<Catalog> {
     );
   });
 
-  const defaultPrice = Number(process.env.DEFAULT_PRODUCT_PRICE_CENTS) || 2500;
   const usedSlugs = new Set<string>();
 
   const products = await mapLimit(
@@ -231,11 +229,6 @@ async function buildCatalog(): Promise<Catalog> {
         slug: "",
         name,
         description,
-        price:
-          typeof meta?.price_gbp === "number" && meta.price_gbp > 0
-            ? Math.round(meta.price_gbp * 100)
-            : defaultPrice,
-        currency: "GBP",
         category,
         image: {
           src: publicUrl(key),
