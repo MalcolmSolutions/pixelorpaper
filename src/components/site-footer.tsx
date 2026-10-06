@@ -32,7 +32,7 @@ export async function SiteFooter() {
           ))}
         </ul>
 
-        <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-3">
             <p className="font-heading text-sm font-semibold tracking-label uppercase">
               {site.name}
@@ -56,6 +56,14 @@ export async function SiteFooter() {
             <FooterLink href="/cart">Your cart</FooterLink>
           </FooterColumn>
 
+          <FooterColumn title="Information">
+            <FooterLink href="/about">About</FooterLink>
+            <FooterLink href="/contact">Contact</FooterLink>
+            <FooterLink href="/privacy-policy">Privacy</FooterLink>
+            <FooterLink href="/terms-of-service">Terms</FooterLink>
+            <FooterLink href="/refunds-returns">Returns</FooterLink>
+          </FooterColumn>
+
           <FooterColumn title="Also find us on">
             <FooterLink href={site.links.etsy} external>
               Etsy
@@ -66,11 +74,14 @@ export async function SiteFooter() {
           </FooterColumn>
         </div>
 
-        <div className="flex flex-col gap-2 border-t py-6 text-xs text-ink-muted sm:flex-row sm:justify-between">
+        <div className="flex flex-col gap-2 border-t py-6 text-xs text-ink-muted md:flex-row md:justify-between">
           <p>
-            © {new Date().getFullYear()} {site.name}
+            Copyright {new Date().getFullYear()}. All images copyright Malcolm
+            Rose.
           </p>
-          <p>Prices shown in GBP including VAT.</p>
+          <p>
+            {site.name} by Malcolm Rose. Prices shown in GBP including VAT.
+          </p>
         </div>
       </div>
     </footer>
