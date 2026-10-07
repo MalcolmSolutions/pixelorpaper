@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import type { Customer } from "@/lib/auth";
 import type { CartLine } from "@/lib/cart";
 import { getDb } from "@/lib/db";
 import type { Order, OrderItem } from "@/types/order";
@@ -17,8 +18,14 @@ function newReference() {
   return `PP-${Array.from(bytes, (b) => REFERENCE_ALPHABET[b % 32]).join("")}`;
 }
 
-/** A pending order and its items, priced from the server-side cart. */
-export async function createPendingOrder(lines: CartLine[]) {
+/**
+ * A pending order and its items, priced from the server-side cart, linked to
+ * the signed-in customer if there is one.
+ */
+export async function createPendingOrder(
+  lines: CartLine[],
+  customerId: string | null = null,
+) {
   const db = await getDb();
   const id = crypto.randomUUID();
   const reference = newReference();
@@ -29,10 +36,10 @@ export async function createPendingOrder(lines: CartLine[]) {
   await db.batch([
     db
       .prepare(
-        `INSERT INTO orders (id, reference, subtotal_pence, shipping_pence, total_pence)
-         VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO orders (id, reference, customer_id, subtotal_pence, shipping_pence, total_pence)
+         VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .bind(id, reference, subtotal, shipping, subtotal + shipping),
+      .bind(id, reference, customerId, subtotal, shipping, subtotal + shipping),
     ...lines.map((line) =>
       db
         .prepare(
@@ -87,6 +94,51 @@ export async function getOrder(id: string) {
     .prepare("SELECT * FROM orders WHERE id = ?")
     .bind(id)
     .first<Order>();
+}
+
+/**
+ * An order belongs to a customer if it's linked to their account, or if it
+ * was a guest order placed with their (verified) account email.
+ */
+const OWNED_BY =
+  "(customer_id = ? OR (customer_id IS NULL AND lower(customer_email) = ?))";
+
+/**
+ * Orders shown in a customer's history: everything that reached checkout
+ * completion, including failed delayed payments, but not abandoned
+ * checkouts. Newest first.
+ */
+export async function getOrdersForCustomer(customer: Customer) {
+  const db = await getDb();
+  const { results } = await db
+    .prepare(
+      `SELECT orders.*,
+              (SELECT coalesce(sum(quantity), 0) FROM order_items
+               WHERE order_items.order_id = orders.id) AS item_count
+       FROM orders
+       WHERE ${OWNED_BY}
+         AND (status IN ('placed', 'needs_review', 'fulfilled')
+              OR payment_status IN ('failed', 'refunded'))
+       ORDER BY coalesce(paid_at, created_at) DESC`,
+    )
+    .bind(customer.id, customer.email)
+    .all<Order & { item_count: number }>();
+  return results;
+}
+
+/** One of the customer's orders with its items, or null if not theirs. */
+export async function getCustomerOrder(customer: Customer, reference: string) {
+  const db = await getDb();
+  const order = await db
+    .prepare(`SELECT * FROM orders WHERE reference = ? AND ${OWNED_BY}`)
+    .bind(reference, customer.id, customer.email)
+    .first<Order>();
+  if (!order) return null;
+  const { results: items } = await db
+    .prepare("SELECT * FROM order_items WHERE order_id = ? ORDER BY id")
+    .bind(order.id)
+    .all<OrderItem>();
+  return { order, items };
 }
 
 export async function getOrderBySessionId(sessionId: string) {

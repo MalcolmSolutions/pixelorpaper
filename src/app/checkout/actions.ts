@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getCurrentCustomer } from "@/lib/auth";
 import { getCart, readCartEntries, writeCartEntries } from "@/lib/cart";
 import {
   attachCheckoutSession,
@@ -9,7 +10,8 @@ import {
   markOrderCancelled,
 } from "@/lib/orders";
 import { isProductStillAvailable } from "@/lib/products";
-import { getStripe, siteUrl } from "@/lib/stripe";
+import { siteUrl } from "@/lib/site";
+import { getStripe } from "@/lib/stripe";
 
 // Tags these sessions in the Stripe Dashboard.
 const INTEGRATION_IDENTIFIER = "pixelorpaper-checkout-qhvmzrta";
@@ -48,7 +50,8 @@ export async function startCheckout() {
     redirect("/cart?checkout=unavailable");
   }
 
-  const order = await createPendingOrder(cart.lines);
+  const customer = await getCurrentCustomer();
+  const order = await createPendingOrder(cart.lines, customer?.id ?? null);
   const site = siteUrl();
 
   let checkoutUrl: string;
@@ -69,6 +72,8 @@ export async function startCheckout() {
           },
         })),
         client_reference_id: order.id,
+        // Signed-in customers pay with their verified account email.
+        ...(customer && { customer_email: customer.email }),
         metadata: { order_id: order.id, order_reference: order.reference },
         payment_intent_data: {
           metadata: { order_id: order.id, order_reference: order.reference },

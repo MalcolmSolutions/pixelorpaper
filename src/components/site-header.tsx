@@ -17,6 +17,9 @@ export function SiteHeader() {
           <Link href="/#wall-builder" className="nav-link hidden sm:inline">
             Build a wall
           </Link>
+          <Link href="/account" className="nav-link">
+            Account
+          </Link>
           <Link href="/cart" className="nav-link">
             Cart
           </Link>
