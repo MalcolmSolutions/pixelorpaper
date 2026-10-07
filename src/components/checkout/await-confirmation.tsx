@@ -8,7 +8,8 @@ const MAX_ATTEMPTS = 20;
 
 /**
  * Re-renders the page every few seconds until Stripe's webhook has confirmed
- * the order. The page itself only ever reads the order from the database.
+ * the order, then offers a manual retry if it takes unusually long. The page
+ * itself only ever reads the order from the database.
  */
 export function AwaitConfirmation() {
   const router = useRouter();
@@ -24,13 +25,18 @@ export function AwaitConfirmation() {
   }, [attempts, router]);
 
   return attempts >= MAX_ATTEMPTS ? (
-    <p className="text-sm text-ink-muted">
-      This is taking longer than usual. If you&rsquo;ve paid, your order will
-      appear here shortly; refresh the page in a minute.
-    </p>
-  ) : (
-    <p className="text-sm text-ink-muted" aria-live="polite">
-      Confirming your payment…
-    </p>
-  );
+    <div className="space-y-3" role="status">
+      <p className="text-sm text-ink-muted">
+        This is taking longer than usual. If you&rsquo;ve paid, your order will
+        appear here shortly.
+      </p>
+      <button
+        type="button"
+        className="btn btn-outline btn-sm"
+        onClick={() => setAttempts(0)}
+      >
+        Check again
+      </button>
+    </div>
+  ) : null; // The order progress shows the waiting state meanwhile.
 }

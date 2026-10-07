@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { removeFromCart, updateQuantity } from "@/app/cart/actions";
 import { startCheckout } from "@/app/checkout/actions";
 import { SubmitButton } from "@/components/cart/submit-button";
-import { wallColour } from "@/components/room-mockup";
-import { getCategory } from "@/lib/categories";
+import { PrintThumbnail } from "@/components/print-thumbnail";
 import { getCart, MAX_QUANTITY, type CartLine } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
 
@@ -13,12 +11,24 @@ export const metadata: Metadata = {
   title: "Cart",
 };
 
-const CHECKOUT_NOTICES: Record<string, string> = {
-  cancelled: "Checkout was cancelled and no payment was taken.",
-  unavailable:
-    "Some prints are no longer available and were removed from your cart. Please check your cart and try again.",
-  error:
-    "We couldn't start checkout just now. No payment was taken; please try again.",
+const CHECKOUT_NOTICES: Record<
+  string,
+  { title: string; body: string; urgent?: boolean }
+> = {
+  cancelled: {
+    title: "Checkout cancelled",
+    body: "No payment was taken. Your cart is just as you left it.",
+  },
+  unavailable: {
+    title: "Some prints are no longer available",
+    body: "We've removed them from your cart. Please check your order before checking out again.",
+    urgent: true,
+  },
+  error: {
+    title: "We couldn't start checkout",
+    body: "No payment was taken. Please try again in a moment.",
+    urgent: true,
+  },
 };
 
 export default async function CartPage(props: PageProps<"/cart">) {
@@ -34,17 +44,17 @@ export default async function CartPage(props: PageProps<"/cart">) {
       <h1>Cart</h1>
 
       {checkoutNotice && (
-        <p role="status" className="mt-6 border-l-2 border-ink pl-4 text-sm">
-          {checkoutNotice}
-        </p>
+        <Notice title={checkoutNotice.title} urgent={checkoutNotice.urgent}>
+          {checkoutNotice.body}
+        </Notice>
       )}
 
       {cart.removedCount > 0 && (
-        <p role="status" className="mt-6 border-l-2 border-ink pl-4 text-sm">
+        <Notice title="Your cart has changed" urgent>
           {cart.removedCount === 1
-            ? "One item is no longer available and was removed from your cart."
-            : `${cart.removedCount} items are no longer available and were removed from your cart.`}
-        </p>
+            ? "One item is no longer available and was removed."
+            : `${cart.removedCount} items are no longer available and were removed.`}
+        </Notice>
       )}
 
       {cart.lines.length === 0 ? (
@@ -65,28 +75,46 @@ export default async function CartPage(props: PageProps<"/cart">) {
             ))}
           </ul>
 
-          <aside className="space-y-4 self-start lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:col-span-4">
-            <dl className="flex items-baseline justify-between border-b pb-4">
+          <aside
+            aria-labelledby="order-summary"
+            className="space-y-5 self-start lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:col-span-4"
+          >
+            <h2 id="order-summary" className="eyebrow">
+              Order summary
+            </h2>
+            <dl className="space-y-2 border-b pb-4 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-muted">
+                  Subtotal ({cart.itemCount}{" "}
+                  {cart.itemCount === 1 ? "item" : "items"})
+                </dt>
+                <dd className="tabular-nums">{formatPrice(cart.subtotal)}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-muted">UK tracked delivery</dt>
+                <dd>Free</dd>
+              </div>
+            </dl>
+            <dl className="flex items-baseline justify-between gap-4">
               <dt>
-                Subtotal{" "}
-                <span className="text-sm text-ink-muted tabular-nums">
-                  ({cart.itemCount} {cart.itemCount === 1 ? "item" : "items"})
-                </span>
+                Total <span className="text-sm text-ink-muted">incl. VAT</span>
               </dt>
               <dd className="text-lg tabular-nums">
                 {formatPrice(cart.subtotal)}
               </dd>
             </dl>
-            <div className="flex justify-between text-sm">
-              <span className="text-ink-muted">UK delivery</span>
-              <span>Free</span>
-            </div>
-            <p className="text-sm text-ink-muted">Prices include UK VAT.</p>
             <form action={startCheckout}>
-              <SubmitButton className="btn btn-primary btn-block">
+              <SubmitButton
+                className="btn btn-primary btn-block"
+                pendingLabel="Redirecting to Stripe…"
+              >
                 Checkout
               </SubmitButton>
             </form>
+            <p className="text-center text-xs text-ink-muted">
+              Payment is handled securely by Stripe. You can review your order
+              before paying.
+            </p>
             <Link href="/products" className="link block text-center text-sm">
               Continue shopping
             </Link>
@@ -97,33 +125,33 @@ export default async function CartPage(props: PageProps<"/cart">) {
   );
 }
 
-async function CartRow({ line }: { line: CartLine }) {
+function Notice({
+  title,
+  urgent,
+  children,
+}: {
+  title: string;
+  urgent?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      role={urgent ? "alert" : "status"}
+      className={`mt-6 max-w-prose border-l-2 py-1 pl-4 text-sm ${urgent ? "border-ink" : "border-line"}`}
+    >
+      <p className="font-medium">{title}</p>
+      <p className="text-ink-muted">{children}</p>
+    </div>
+  );
+}
+
+function CartRow({ line }: { line: CartLine }) {
   const { product, size, quantity } = line;
-  const category = await getCategory(product.category);
   const href = `/products/${product.slug}`;
 
   return (
     <li className="flex gap-4 py-5 sm:gap-6">
-      <Link
-        href={href}
-        tabIndex={-1}
-        aria-hidden
-        className="media-well flex aspect-[4/5] w-20 shrink-0 items-center justify-center sm:w-24"
-        style={
-          category
-            ? ({ "--wall": wallColour(category.wall) } as React.CSSProperties)
-            : undefined
-        }
-      >
-        <Image
-          src={product.image.src}
-          alt=""
-          width={product.image.width}
-          height={product.image.height}
-          sizes="96px"
-          className="mb-[10%] h-auto max-h-[70%] w-auto max-w-[80%] bg-white p-[4%] shadow-[0_4px_10px_-4px_rgb(0_0_0/0.4)]"
-        />
-      </Link>
+      <PrintThumbnail product={product} />
 
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-baseline justify-between gap-4">
