@@ -1,5 +1,4 @@
-import { getCatalog } from "@/lib/catalog";
-import { objectExists } from "@/lib/r2";
+import { getCatalog, isProductAvailableNow } from "@/lib/catalog";
 import type { Orientation, Product, ProductSort } from "@/types/product";
 
 export type ProductQuery = {
@@ -13,11 +12,12 @@ const SORTERS: Record<ProductSort, ((a: Product, b: Product) => number) | null> 
   name: (a, b) => a.name.localeCompare(b.name),
 };
 
-/** Products from the R2 catalog, optionally filtered and sorted. */
+/** Products for sale, optionally filtered and sorted. */
 export async function getProducts(query: ProductQuery = {}): Promise<Product[]> {
   const { products } = await getCatalog();
   const result = products.filter(
     (p) =>
+      p.available &&
       (!query.category || p.category === query.category) &&
       (!query.orientation || p.orientation === query.orientation),
   );
@@ -27,7 +27,7 @@ export async function getProducts(query: ProductQuery = {}): Promise<Product[]> 
 
 export async function getBestSellers(limit = 8): Promise<Product[]> {
   const { products } = await getCatalog();
-  return products.slice(0, limit);
+  return products.filter((p) => p.available).slice(0, limit);
 }
 
 export async function getProductsByCategory(
@@ -49,9 +49,9 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 }
 
 /**
- * Whether a product's image is still in the bucket, bypassing the hour-long
- * catalog cache. Used to revalidate stock before checkout.
+ * Whether a product is still for sale, bypassing the hour-long catalog
+ * cache. Used to revalidate stock before checkout.
  */
 export async function isProductStillAvailable(id: string): Promise<boolean> {
-  return objectExists(id);
+  return isProductAvailableNow(id);
 }

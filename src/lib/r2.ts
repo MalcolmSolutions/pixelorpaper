@@ -30,14 +30,22 @@ const decodeXml = (s: string) =>
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&");
 
-/** SigV4 headers for a GET of `path?query` (signed fresh on each call). */
-function signGet(host: string, path: string, query: string) {
+/**
+ * SigV4 headers for `method path?query` (signed fresh on each call). Bodies
+ * are sent as UNSIGNED-PAYLOAD, which R2 accepts over HTTPS.
+ */
+function signRequest(
+  method: "GET" | "PUT" | "DELETE",
+  host: string,
+  path: string,
+  query: string,
+) {
   const amzDate = new Date().toISOString().replace(/[-:]|\.\d{3}/g, "");
   const scope = `${amzDate.slice(0, 8)}/auto/s3/aws4_request`;
-  const payloadHash = sha256("");
+  const payloadHash = method === "PUT" ? "UNSIGNED-PAYLOAD" : sha256("");
   const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
   const canonicalRequest = [
-    "GET",
+    method,
     path,
     query,
     `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`,
@@ -82,7 +90,7 @@ async function signedGet(
 
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(url, {
-      headers: { ...headers, ...signGet(host, path, query) },
+      headers: { ...headers, ...signRequest("GET", host, path, query) },
     });
     if (res.ok) return res;
 
@@ -146,6 +154,43 @@ export async function objectExists(key: string): Promise<boolean> {
       return false;
     }
     throw error;
+  }
+}
+
+const objectPath = (key: string) =>
+  `${bucketPath()}/${key.split("/").map(encode).join("/")}`;
+
+/** Upload an object (e.g. an admin's product image). Throws on failure. */
+export async function putObject(
+  key: string,
+  body: ArrayBuffer,
+  contentType: string,
+): Promise<void> {
+  const { host, origin } = new URL(env("R2_S3_ENDPOINT"));
+  const path = objectPath(key);
+  const res = await fetch(`${origin}${path}`, {
+    method: "PUT",
+    body,
+    headers: {
+      "Content-Type": contentType,
+      ...signRequest("PUT", host, path, ""),
+    },
+  });
+  await res.arrayBuffer(); // drain (cancelling can stall Node's fetch)
+  if (!res.ok) throw new Error(`R2 upload failed: ${res.status} ${path}`);
+}
+
+/** Delete an object. Missing objects are not an error. */
+export async function deleteObject(key: string): Promise<void> {
+  const { host, origin } = new URL(env("R2_S3_ENDPOINT"));
+  const path = objectPath(key);
+  const res = await fetch(`${origin}${path}`, {
+    method: "DELETE",
+    headers: signRequest("DELETE", host, path, ""),
+  });
+  await res.arrayBuffer(); // drain (cancelling can stall Node's fetch)
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`R2 delete failed: ${res.status} ${path}`);
   }
 }
 

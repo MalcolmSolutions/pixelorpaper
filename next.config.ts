@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     // Source files are large originals; cache optimised versions for a month.
     minimumCacheTTL: 2678400,
   },
+  experimental: {
+    serverActions: {
+      // Admin product images (up to 20 MB, checked in the action) plus form overhead.
+      bodySizeLimit: "21mb",
+    },
+  },
 };
 
 export default nextConfig;

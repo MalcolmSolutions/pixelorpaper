@@ -30,7 +30,7 @@ export function PriceList() {
               <h3 className="font-sans text-sm font-medium tracking-normal">
                 {size.name}
               </h3>
-              <p className="text-sm tabular-nums">{formatPrice(size.price)}</p>
+              <p className="text-sm tabular-nums">{formatPrice(size.standardPrice)}</p>
             </div>
             <p className="mt-0.5 text-xs text-ink-muted tabular-nums">
               {size.widthMm / 10} × {size.heightMm / 10} cm
@@ -39,7 +39,8 @@ export function PriceList() {
         ))}
       </ul>
       <p className="mt-8 text-sm text-ink-muted">
-        Every print is available in all four sizes. Prices include UK VAT.
+        Every print is available in all four sizes. These are our standard
+        prices, including UK VAT; a few prints may be priced differently.
       </p>
     </section>
   );

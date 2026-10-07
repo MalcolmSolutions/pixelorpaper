@@ -34,14 +34,22 @@ export default async function AccountPage() {
             Signed in as <span className="text-ink">{customer.email}</span>
           </p>
         </div>
-        <form action={signOut}>
-          <SubmitButton
-            className="btn btn-outline btn-sm"
-            pendingLabel="Signing out…"
-          >
-            Sign out
-          </SubmitButton>
-        </form>
+        <div className="flex items-center gap-3">
+          {/* Convenience only: /admin itself checks the role on the server. */}
+          {customer.role === "admin" && (
+            <Link href="/admin" className="btn btn-primary btn-sm">
+              Admin
+            </Link>
+          )}
+          <form action={signOut}>
+            <SubmitButton
+              className="btn btn-outline btn-sm"
+              pendingLabel="Signing out…"
+            >
+              Sign out
+            </SubmitButton>
+          </form>
+        </div>
       </header>
 
       {orders.length === 0 ? (

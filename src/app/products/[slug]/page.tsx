@@ -66,7 +66,19 @@ export default async function ProductPage(
           </p>
         )}
         <hr />
-        <SizePicker productId={product.id} />
+        {product.available ? (
+          <SizePicker productId={product.id} prices={product.prices} />
+        ) : (
+          <div className="space-y-4">
+            <p className="text-lg">Currently unavailable</p>
+            <p className="text-sm text-ink-muted">
+              This print isn&rsquo;t for sale at the moment.
+            </p>
+            <Link href="/products" className="btn btn-outline">
+              Browse other prints
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

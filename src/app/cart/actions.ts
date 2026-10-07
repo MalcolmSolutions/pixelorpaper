@@ -19,7 +19,7 @@ async function validate(productId: unknown, size: unknown) {
     return "Invalid request.";
   }
   if (!getPrintSize(size)) return "That size isn't available.";
-  if (!(await getProductById(productId))) {
+  if (!(await getProductById(productId))?.available) {
     return "That print is no longer available.";
   }
   return null;

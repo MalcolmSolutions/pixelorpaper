@@ -3,11 +3,20 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { addToCartForm } from "@/app/cart/actions";
-import { PRINT_SIZES } from "@/lib/print-sizes";
+import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
-/** Print size options with the selected size's price and the cart button. */
-export function SizePicker({ productId }: { productId: string }) {
+/**
+ * Print size options with the selected size's price and the cart button.
+ * Prices are for display; the server prices the cart itself.
+ */
+export function SizePicker({
+  productId,
+  prices,
+}: {
+  productId: string;
+  prices: Record<PrintSizeName, number>;
+}) {
   const [selected, setSelected] = useState(PRINT_SIZES[1]);
   const [result, formAction, pending] = useActionState(addToCartForm, null);
   // The result only describes the size that was submitted.
@@ -19,7 +28,7 @@ export function SizePicker({ productId }: { productId: string }) {
       <input type="hidden" name="size" value={selected.name} />
 
       <p className="text-lg tabular-nums">
-        {formatPrice(selected.price)}{" "}
+        {formatPrice(prices[selected.name])}{" "}
         <span className="text-sm text-ink-muted">incl. VAT</span>
       </p>
 
@@ -41,7 +50,7 @@ export function SizePicker({ productId }: { productId: string }) {
             >
               <span className="font-medium">{size.name}</span>
               <span className="text-xs tabular-nums">
-                {formatPrice(size.price)}
+                {formatPrice(prices[size.name])}
               </span>
             </button>
           ))}

@@ -77,7 +77,7 @@ export async function readCartEntries(): Promise<CartEntry[]> {
 async function isAvailable(entry: CartEntry) {
   return (
     getPrintSize(entry.size) !== undefined &&
-    (await getProductById(entry.productId)) !== undefined
+    (await getProductById(entry.productId))?.available === true
   );
 }
 
@@ -113,13 +113,14 @@ export async function getCart(): Promise<Cart> {
     entries.map(async (entry) => {
       const size = getPrintSize(entry.size);
       const product = size && (await getProductById(entry.productId));
-      if (!size || !product) return undefined;
+      if (!size || !product?.available) return undefined;
+      const unitPrice = product.prices[size.name];
       return {
         product,
         size,
         quantity: entry.quantity,
-        unitPrice: size.price,
-        lineTotal: size.price * entry.quantity,
+        unitPrice,
+        lineTotal: unitPrice * entry.quantity,
       } satisfies CartLine;
     }),
   );

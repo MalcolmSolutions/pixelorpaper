@@ -13,7 +13,12 @@ const LINK_MINUTES = 15;
 const LINKS_PER_HOUR = 5;
 const NOW = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
 
-export type Customer = { id: string; email: string };
+export type Customer = {
+  id: string;
+  email: string;
+  /** Set in the database only (migration 0003); there's no UI to change it. */
+  role: "customer" | "admin";
+};
 
 function randomToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
@@ -97,7 +102,7 @@ export async function redeemSignInToken(token: unknown): Promise<boolean> {
     .bind(crypto.randomUUID(), used.email)
     .run();
   const customer = await db
-    .prepare("SELECT id, email FROM customers WHERE email = ?")
+    .prepare("SELECT id, email, role FROM customers WHERE email = ?")
     .bind(used.email)
     .first<Customer>();
   if (!customer) return false;
@@ -135,7 +140,7 @@ export const getCurrentCustomer = cache(async (): Promise<Customer | null> => {
   const db = await getDb();
   return db
     .prepare(
-      `SELECT customers.id, customers.email
+      `SELECT customers.id, customers.email, customers.role
        FROM sessions JOIN customers ON customers.id = sessions.customer_id
        WHERE sessions.id_hash = ? AND sessions.expires_at > ${NOW}`,
     )
