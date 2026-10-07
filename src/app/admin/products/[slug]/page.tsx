@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AvailabilitySwitch } from "@/components/admin/availability-switch";
 import { ProductForm } from "@/components/admin/product-form";
 import { requireAdmin } from "@/lib/admin";
 import { getProductBySlug, listCategories } from "@/lib/admin/catalog";
@@ -53,6 +54,26 @@ export default async function EditProductPage(
           Product created and on sale in the shop.
         </p>
       )}
+      <section
+        aria-labelledby="stock-heading"
+        className="mb-10 flex flex-col gap-3 border p-5 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div className="space-y-1">
+          <h2 id="stock-heading" className="eyebrow">
+            Stock
+          </h2>
+          <p className="text-sm text-ink-muted">
+            {product.available
+              ? "On sale. Every print is made to order."
+              : "Off sale: hidden from the shop, and it can't be added to carts or bought."}
+          </p>
+        </div>
+        <AvailabilitySwitch
+          slug={product.slug}
+          name={product.name}
+          available={product.available}
+        />
+      </section>
       <ProductForm
         mode="edit"
         slug={product.slug}

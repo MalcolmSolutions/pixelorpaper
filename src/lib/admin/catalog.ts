@@ -35,13 +35,17 @@ export async function categoryExists(slug: string) {
 }
 
 /** A page of products matching a name search and category, with prices. */
+export type AvailabilityFilter = "" | "available" | "unavailable";
+
 export async function listProducts({
   search = "",
   category = "",
+  availability = "",
   page = 1,
 }: {
   search?: string;
   category?: string;
+  availability?: AvailabilityFilter;
   page?: number;
 }) {
   const db = await getDrizzle();
@@ -53,6 +57,9 @@ export async function listProducts({
     );
   }
   if (category) filters.push(eq(products.categorySlug, category));
+  if (availability) {
+    filters.push(eq(products.available, availability === "available"));
+  }
   const where = filters.length ? and(...filters) : undefined;
 
   const [{ total }] = await db
@@ -84,6 +91,34 @@ export async function listProducts({
       ),
     })),
   };
+}
+
+/** How many products are on sale and off sale, optionally in a category. */
+export async function countByAvailability(category = "") {
+  const db = await getDrizzle();
+  const rows = await db
+    .select({ available: products.available, total: count() })
+    .from(products)
+    .where(category ? eq(products.categorySlug, category) : undefined)
+    .groupBy(products.available);
+  const counts = { available: 0, unavailable: 0 };
+  for (const row of rows)
+    counts[row.available ? "available" : "unavailable"] = row.total;
+  return counts;
+}
+
+/**
+ * Puts a product on or off sale. Returns its name, or null if there's no
+ * product with that slug.
+ */
+export async function setProductAvailability(slug: string, available: boolean) {
+  const db = await getDrizzle();
+  const [row] = await db
+    .update(products)
+    .set({ available })
+    .where(eq(products.slug, slug))
+    .returning({ name: products.name });
+  return row?.name ?? null;
 }
 
 export async function getProductBySlug(slug: string) {

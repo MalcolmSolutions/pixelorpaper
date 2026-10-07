@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AvailabilitySwitch } from "@/components/admin/availability-switch";
 import { ImportButton } from "@/components/admin/import-button";
 import { inputClass } from "@/components/admin/field";
 import { PrintThumbnail } from "@/components/print-thumbnail";
 import { requireAdmin } from "@/lib/admin";
 import {
   ADMIN_PAGE_SIZE,
+  countByAvailability,
   countProducts,
   listCategories,
   listProducts,
+  type AvailabilityFilter,
 } from "@/lib/admin/catalog";
 import { toProduct } from "@/lib/catalog";
 import { PRINT_SIZES } from "@/lib/print-sizes";
@@ -17,7 +20,13 @@ import { formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Products" };
 
-const COLUMNS = "md:grid-cols-[6rem_minmax(0,1fr)_10rem_10rem_6rem_4rem]";
+const COLUMNS = "md:grid-cols-[6rem_minmax(0,1fr)_9rem_10rem_11rem_3rem]";
+
+const STOCK_FILTERS: { value: AvailabilityFilter; label: string }[] = [
+  { value: "", label: "All" },
+  { value: "available", label: "In stock" },
+  { value: "unavailable", label: "Unavailable" },
+];
 
 export default async function AdminProductsPage(
   props: PageProps<"/admin/products">,
@@ -53,12 +62,25 @@ export default async function AdminProductsPage(
   const category = categories.some((c) => c.slug === one(params.category))
     ? one(params.category)
     : "";
-  const { total, rows } = await listProducts({ search, category, page });
+  const availability: AvailabilityFilter =
+    one(params.stock) === "available" || one(params.stock) === "unavailable"
+      ? (one(params.stock) as AvailabilityFilter)
+      : "";
+  const [{ total, rows }, stock] = await Promise.all([
+    listProducts({ search, category, availability, page }),
+    countByAvailability(category),
+  ]);
   const pages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE));
   const categoryName = new Map(categories.map((c) => [c.slug, c.name]));
   const href = (change: Record<string, string | number>) => {
     const next = new URLSearchParams();
-    const merged = { q: search, category, page: 1, ...change };
+    const merged = {
+      q: search,
+      category,
+      stock: availability,
+      page: 1,
+      ...change,
+    };
     for (const [k, v] of Object.entries(merged)) {
       if (v && !(k === "page" && v === 1)) next.set(k, String(v));
     }
@@ -95,6 +117,9 @@ export default async function AdminProductsPage(
           className={`${inputClass} sm:max-w-sm`}
         />
         {category && <input type="hidden" name="category" value={category} />}
+        {availability && (
+          <input type="hidden" name="stock" value={availability} />
+        )}
         <button type="submit" className="btn btn-outline">
           Search
         </button>
@@ -123,6 +148,28 @@ export default async function AdminProductsPage(
         ))}
       </nav>
 
+      <nav
+        aria-label="Filter by stock"
+        className="mb-6 flex flex-wrap items-center gap-2"
+      >
+        <span className="eyebrow mr-2">Stock</span>
+        {STOCK_FILTERS.map((f) => (
+          <Link
+            key={f.label}
+            href={href({ stock: f.value })}
+            aria-current={availability === f.value ? "page" : undefined}
+            className="chip gap-2 whitespace-nowrap"
+          >
+            {f.label}
+            <span className="text-xs tabular-nums opacity-70">
+              {f.value === ""
+                ? stock.available + stock.unavailable
+                : stock[f.value]}
+            </span>
+          </Link>
+        ))}
+      </nav>
+
       <p className="mb-3 text-sm text-ink-muted tabular-nums">
         {total} {total === 1 ? "product" : "products"}
         {search && <> matching &ldquo;{search}&rdquo;</>}
@@ -145,7 +192,7 @@ export default async function AdminProductsPage(
             <span>Product</span>
             <span>Category</span>
             <span>Prices</span>
-            <span>Status</span>
+            <span>Stock</span>
             <span />
           </div>
           <ul className="divide-y border-b">
@@ -188,9 +235,12 @@ export default async function AdminProductsPage(
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-ink-muted">
-                    {row.available ? "Available" : "Unavailable"}
-                  </p>
+                  <AvailabilitySwitch
+                    slug={row.slug}
+                    name={row.name}
+                    available={row.available}
+                    compact
+                  />
                   <Link
                     href={`/admin/products/${row.slug}`}
                     className="link text-sm md:text-right"

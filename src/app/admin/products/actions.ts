@@ -8,6 +8,7 @@ import {
   getProductBySlug,
   importFromBucket,
   insertProduct,
+  setProductAvailability,
   updateProduct as saveProduct,
 } from "@/lib/admin/catalog";
 import {
@@ -163,5 +164,26 @@ export async function importProducts(): Promise<ImportState> {
       status: "error",
       message: "The import didn't finish. It's safe to run it again.",
     };
+  }
+}
+
+/**
+ * Puts a product on or off sale (the shop's "stock" for made-to-order
+ * prints). Off sale: hidden from listings, its page says it's unavailable,
+ * carts drop it and checkout refuses it.
+ */
+export async function setAvailability(formData: FormData) {
+  await requireAdmin();
+  const slug = formData.get("slug");
+  const available = formData.get("available");
+  if (
+    typeof slug !== "string" ||
+    !/^[a-z0-9-]{1,200}$/.test(slug) ||
+    (available !== "1" && available !== "0")
+  ) {
+    return;
+  }
+  if (await setProductAvailability(slug, available === "1")) {
+    updateTag(CATALOG_TAG);
   }
 }
