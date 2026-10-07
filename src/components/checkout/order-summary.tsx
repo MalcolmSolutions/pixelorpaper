@@ -50,8 +50,8 @@ export async function OrderItems({
                 {/* Name and price as ordered, even if the shop has changed. */}
                 <p className="font-medium">{item.product_name}</p>
                 <p className="text-sm text-ink-muted tabular-nums">
-                  {item.size} · {item.quantity} ×{" "}
-                  {formatPrice(item.unit_price_pence)}
+                  {item.size} print · Qty {item.quantity} ·{" "}
+                  {formatPrice(item.unit_price_pence)} each
                 </p>
               </div>
               <p className="shrink-0 tabular-nums">
@@ -62,6 +62,10 @@ export async function OrderItems({
         ))}
       </ul>
       <dl className="space-y-2 pt-4 text-sm">
+        <div className="flex justify-between">
+          <dt className="text-ink-muted">Subtotal</dt>
+          <dd className="tabular-nums">{formatPrice(order.subtotal_pence)}</dd>
+        </div>
         <div className="flex justify-between">
           <dt className="text-ink-muted">Delivery</dt>
           <dd>
