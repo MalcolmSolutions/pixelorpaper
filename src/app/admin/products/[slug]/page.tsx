@@ -55,16 +55,16 @@ export default async function EditProductPage(
         </p>
       )}
       <section
-        aria-labelledby="stock-heading"
+        aria-labelledby="sale-heading"
         className="mb-10 flex flex-col gap-3 border p-5 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="space-y-1">
-          <h2 id="stock-heading" className="eyebrow">
-            Stock
+          <h2 id="sale-heading" className="eyebrow">
+            Sale status
           </h2>
           <p className="text-sm text-ink-muted">
             {product.available
-              ? "On sale. Every print is made to order."
+              ? "Customers can find and buy this print."
               : "Off sale: hidden from the shop, and it can't be added to carts or bought."}
           </p>
         </div>

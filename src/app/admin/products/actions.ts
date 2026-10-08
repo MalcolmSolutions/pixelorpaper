@@ -168,8 +168,9 @@ export async function importProducts(): Promise<ImportState> {
 }
 
 /**
- * Puts a product on or off sale (the shop's "stock" for made-to-order
- * prints). Off sale: hidden from listings, its page says it's unavailable,
+ * Puts a product on or off sale. Prints never run out (each is made to
+ * order from the same image), so this is the only "stock" there is.
+ * Off sale: hidden from listings, its page says it's unavailable,
  * carts drop it and checkout refuses it.
  */
 export async function setAvailability(formData: FormData) {

@@ -22,10 +22,10 @@ export const metadata: Metadata = { title: "Products" };
 
 const COLUMNS = "md:grid-cols-[6rem_minmax(0,1fr)_9rem_10rem_11rem_3rem]";
 
-const STOCK_FILTERS: { value: AvailabilityFilter; label: string }[] = [
+const SALE_FILTERS: { value: AvailabilityFilter; label: string }[] = [
   { value: "", label: "All" },
-  { value: "available", label: "In stock" },
-  { value: "unavailable", label: "Unavailable" },
+  { value: "available", label: "On sale" },
+  { value: "unavailable", label: "Off sale" },
 ];
 
 export default async function AdminProductsPage(
@@ -63,10 +63,10 @@ export default async function AdminProductsPage(
     ? one(params.category)
     : "";
   const availability: AvailabilityFilter =
-    one(params.stock) === "available" || one(params.stock) === "unavailable"
-      ? (one(params.stock) as AvailabilityFilter)
+    one(params.sale) === "available" || one(params.sale) === "unavailable"
+      ? (one(params.sale) as AvailabilityFilter)
       : "";
-  const [{ total, rows }, stock] = await Promise.all([
+  const [{ total, rows }, saleCounts] = await Promise.all([
     listProducts({ search, category, availability, page }),
     countByAvailability(category),
   ]);
@@ -77,7 +77,7 @@ export default async function AdminProductsPage(
     const merged = {
       q: search,
       category,
-      stock: availability,
+      sale: availability,
       page: 1,
       ...change,
     };
@@ -118,7 +118,7 @@ export default async function AdminProductsPage(
         />
         {category && <input type="hidden" name="category" value={category} />}
         {availability && (
-          <input type="hidden" name="stock" value={availability} />
+          <input type="hidden" name="sale" value={availability} />
         )}
         <button type="submit" className="btn btn-outline">
           Search
@@ -149,22 +149,22 @@ export default async function AdminProductsPage(
       </nav>
 
       <nav
-        aria-label="Filter by stock"
+        aria-label="Filter by sale status"
         className="mb-6 flex flex-wrap items-center gap-2"
       >
-        <span className="eyebrow mr-2">Stock</span>
-        {STOCK_FILTERS.map((f) => (
+        <span className="eyebrow mr-2">Sale</span>
+        {SALE_FILTERS.map((f) => (
           <Link
             key={f.label}
-            href={href({ stock: f.value })}
+            href={href({ sale: f.value })}
             aria-current={availability === f.value ? "page" : undefined}
             className="chip gap-2 whitespace-nowrap"
           >
             {f.label}
             <span className="text-xs tabular-nums opacity-70">
               {f.value === ""
-                ? stock.available + stock.unavailable
-                : stock[f.value]}
+                ? saleCounts.available + saleCounts.unavailable
+                : saleCounts[f.value]}
             </span>
           </Link>
         ))}
@@ -192,7 +192,7 @@ export default async function AdminProductsPage(
             <span>Product</span>
             <span>Category</span>
             <span>Prices</span>
-            <span>Stock</span>
+            <span>Sale</span>
             <span />
           </div>
           <ul className="divide-y border-b">

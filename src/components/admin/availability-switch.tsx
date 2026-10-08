@@ -3,7 +3,7 @@ import { SubmitButton } from "@/components/cart/submit-button";
 import { cn } from "@/lib/utils";
 
 /**
- * A product's stock state with a button to change it. A plain form, so it
+ * Whether a product is on sale, with a button to change it. A plain form, so it
  * works without JavaScript; the server action checks the admin role.
  */
 export function AvailabilitySwitch({
@@ -32,7 +32,7 @@ export function AvailabilitySwitch({
             available ? "bg-ink" : "border border-ink-muted",
           )}
         />
-        {available ? "In stock" : "Unavailable"}
+        {available ? "On sale" : "Off sale"}
       </span>
       <SubmitButton
         className={
@@ -42,7 +42,7 @@ export function AvailabilitySwitch({
         }
         pendingLabel="Saving…"
       >
-        {available ? "Mark unavailable" : "Mark in stock"}
+        {available ? "Take off sale" : "Put on sale"}
         <span className="sr-only"> {name}</span>
       </SubmitButton>
     </form>
