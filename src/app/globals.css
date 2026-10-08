@@ -108,6 +108,11 @@
     @apply bg-canvas text-ink;
   }
 
+  /* With components/protect-images.tsx: discourage saving images by drag. */
+  img {
+    -webkit-user-drag: none;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;

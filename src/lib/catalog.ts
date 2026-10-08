@@ -108,10 +108,16 @@ async function readCatalog(): Promise<Catalog> {
   };
 }
 
-const getCachedCatalog = unstable_cache(readCatalog, ["d1-catalog"], {
-  revalidate: 3600,
-  tags: [CATALOG_TAG],
-});
+// Image URLs are baked into the cached products, so the previews address is
+// part of the key: changing it can never serve stale (disallowed) URLs.
+const getCachedCatalog = unstable_cache(
+  readCatalog,
+  ["d1-catalog", process.env.NEXT_PUBLIC_PREVIEW_BASE_URL ?? ""],
+  {
+    revalidate: 3600,
+    tags: [CATALOG_TAG],
+  },
+);
 
 /**
  * The full catalog, including unavailable products (filter with

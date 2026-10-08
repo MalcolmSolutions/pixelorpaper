@@ -1,13 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   createProduct,
   updateProduct,
   type ProductFormState,
 } from "@/app/admin/products/actions";
 import { Field, inputClass } from "@/components/admin/field";
+import { makePreview } from "@/components/admin/make-preview";
 import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
@@ -43,18 +44,49 @@ export function ProductForm({
     ProductFormState,
     FormData
   >(mode === "create" ? createProduct : updateProduct, { status: "idle" });
-  const [preview, setPreview] = useState<string | null>(null);
   const errors = state.status === "error" ? state.errors : {};
   // After a rejected submit, refill with what was sent (React resets forms).
   const sent = state.status === "error" ? state.values : null;
   const value = (name: string, fallback: string) => sent?.[name] ?? fallback;
+  // Remount after each response so refilled defaults take effect. File
+  // inputs come back empty, so a chosen image only counts for this key.
+  const formKey =
+    state.status === "error" ? JSON.stringify(state.values) : state.status;
+
+  // The chosen image's local preview and the web preview made from it.
+  const previewInput = useRef<HTMLInputElement>(null);
+  const [chosen, setChosen] = useState<{
+    formKey: string;
+    url: string;
+    status: "working" | "ready" | "failed";
+  } | null>(null);
+  const current = chosen?.formKey === formKey ? chosen : null;
+  const preview = current?.url ?? null;
+  const waitingForPreview = mode === "create" && current?.status !== "ready";
+
+  async function onImageChosen(file: File | undefined) {
+    if (!file) {
+      setChosen(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setChosen({ formKey, url, status: "working" });
+    try {
+      const blob = await makePreview(file);
+      const transfer = new DataTransfer();
+      transfer.items.add(
+        new File([blob], "preview.jpg", { type: "image/jpeg" }),
+      );
+      if (previewInput.current) previewInput.current.files = transfer.files;
+      setChosen({ formKey, url, status: "ready" });
+    } catch {
+      setChosen({ formKey, url, status: "failed" });
+    }
+  }
 
   return (
     <form
-      // Remount after each response so refilled defaults take effect.
-      key={
-        state.status === "error" ? JSON.stringify(state.values) : state.status
-      }
+      key={formKey}
       action={formAction}
       className="grid gap-10 lg:grid-cols-12 lg:gap-16"
       noValidate
@@ -74,14 +106,25 @@ export function ProductForm({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="block w-full text-sm file:mr-4 file:btn file:btn-outline file:btn-sm"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  setPreview(file ? URL.createObjectURL(file) : null);
-                }}
+                onChange={(e) => onImageChosen(e.target.files?.[0])}
               />
             )}
           />
         ) : null}
+        {mode === "create" && (
+          <>
+            {/* Filled in by onImageChosen; the server checks it. */}
+            <input ref={previewInput} type="file" name="preview" hidden />
+            <p role="status" className="text-xs text-ink-muted">
+              {current?.status === "working" &&
+                "Making the web preview the shop will show…"}
+              {current?.status === "ready" &&
+                "Web preview ready. The full-size file is kept private and sold as the download."}
+              {current?.status === "failed" &&
+                "This browser couldn't make a preview. Try another browser or image."}
+            </p>
+          </>
+        )}
         {(preview || image) && (
           <div className="media-well flex aspect-[4/5] items-center justify-center">
             {preview ? (
@@ -227,7 +270,7 @@ export function ProductForm({
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={pending}
+            disabled={pending || waitingForPreview}
             aria-busy={pending || undefined}
           >
             {pending

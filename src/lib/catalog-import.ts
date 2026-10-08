@@ -218,8 +218,10 @@ export async function readBucketCatalog(): Promise<Catalog> {
       const meta = metadataFiles.has(filename)
         ? await fetchMetadata(filename)
         : undefined;
-      const size = parseResolution(meta?.resolution) ??
-        (await fetchImageSize(key)) ?? { width: 3, height: 2 };
+      // The file's own header first: it's upright (EXIF rotation applied),
+      // whereas metadata resolutions give the stored, unrotated pixels.
+      const size = (await fetchImageSize(key)) ??
+        parseResolution(meta?.resolution) ?? { width: 3, height: 2 };
 
       const name = meta?.title?.trim() || titleFromFilename(filename);
       const categoryName =

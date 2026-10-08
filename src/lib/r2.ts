@@ -157,8 +157,19 @@ export async function objectExists(key: string): Promise<boolean> {
   }
 }
 
-const objectPath = (key: string) =>
-  `${bucketPath()}/${key.split("/").map(encode).join("/")}`;
+/**
+ * Buckets this app writes to. Full-resolution originals are private (only
+ * reachable through signed download links); previews are public and are
+ * what the shop shows. R2_BUCKET_NAME is the older bucket the live site
+ * reads from; this app only ever reads it (catalog import).
+ */
+export const ORIGINALS_BUCKET =
+  process.env.R2_ORIGINALS_BUCKET || "pixelorpaper-originals";
+export const PREVIEWS_BUCKET =
+  process.env.R2_PREVIEWS_BUCKET || "pixelorpaper-previews";
+
+const objectPath = (bucket: string, key: string) =>
+  `/${encode(bucket)}/${key.split("/").map(encode).join("/")}`;
 
 /** An upload R2 refused, with its HTTP status and S3 error code. */
 export class R2UploadError extends Error {
@@ -187,21 +198,27 @@ export class R2UploadError extends Error {
 }
 
 /**
- * Upload an object (e.g. an admin's product image). Throws R2UploadError if
- * R2 refuses it, or a network error if R2 can't be reached.
+ * Upload an object (e.g. an admin's product image) to one of this app's
+ * buckets. Throws R2UploadError if R2 refuses it, or a network error if R2
+ * can't be reached.
  */
 export async function putObject(
+  bucket: typeof ORIGINALS_BUCKET | typeof PREVIEWS_BUCKET,
   key: string,
   body: ArrayBuffer,
   contentType: string,
 ): Promise<void> {
   const { host, origin } = new URL(env("R2_S3_ENDPOINT"));
-  const path = objectPath(key);
+  const path = objectPath(bucket, key);
   const res = await fetch(`${origin}${path}`, {
     method: "PUT",
     body,
     headers: {
       "Content-Type": contentType,
+      "Cache-Control":
+        bucket === PREVIEWS_BUCKET
+          ? "public, max-age=2592000"
+          : "private, no-store",
       ...signRequest("PUT", host, path, ""),
     },
   });
@@ -214,10 +231,13 @@ export async function putObject(
   }
 }
 
-/** Delete an object. Missing objects are not an error. */
-export async function deleteObject(key: string): Promise<void> {
+/** Delete an object from one of this app's buckets. Missing is not an error. */
+export async function deleteObject(
+  bucket: typeof ORIGINALS_BUCKET | typeof PREVIEWS_BUCKET,
+  key: string,
+): Promise<void> {
   const { host, origin } = new URL(env("R2_S3_ENDPOINT"));
-  const path = objectPath(key);
+  const path = objectPath(bucket, key);
   const res = await fetch(`${origin}${path}`, {
     method: "DELETE",
     headers: signRequest("DELETE", host, path, ""),
@@ -228,8 +248,11 @@ export async function deleteObject(key: string): Promise<void> {
   }
 }
 
-/** Public URL for an object key (for browsers and the image optimiser). */
+/**
+ * Public URL of an image's web preview (for browsers and the image
+ * optimiser). Originals are never linked: they're only sold as downloads.
+ */
 export function publicUrl(key: string) {
-  const base = env("NEXT_PUBLIC_IMAGE_BASE_URL").replace(/\/$/, "");
+  const base = env("NEXT_PUBLIC_PREVIEW_BASE_URL").replace(/\/$/, "");
   return `${base}/${key.split("/").map(encodeURIComponent).join("/")}`;
 }

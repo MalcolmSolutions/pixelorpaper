@@ -13,11 +13,18 @@ import {
 } from "@/lib/admin/catalog";
 import {
   parseImage,
+  parsePreview,
   parseProductFields,
   type FieldErrors,
 } from "@/lib/admin/product-input";
 import { CATALOG_TAG } from "@/lib/catalog";
-import { deleteObject, putObject, R2UploadError } from "@/lib/r2";
+import {
+  deleteObject,
+  ORIGINALS_BUCKET,
+  PREVIEWS_BUCKET,
+  putObject,
+  R2UploadError,
+} from "@/lib/r2";
 
 export type ProductFormState =
   | { status: "idle" }
@@ -51,8 +58,9 @@ function submitted(formData: FormData) {
 }
 
 /**
- * Creates a product: validates the form and image, uploads the image to R2,
- * then saves the product and its prices.
+ * Creates a product: validates the form, the original image and the preview
+ * the admin's browser made from it, uploads both to R2, then saves the
+ * product and its prices.
  */
 export async function createProduct(
   _previous: ProductFormState,
@@ -62,22 +70,44 @@ export async function createProduct(
 
   const parsed = parseProductFields(formData);
   const image = await parseImage(formData.get("image"));
+  const preview = image.ok
+    ? await parsePreview(formData.get("preview"), image.image)
+    : null;
   const errors: FieldErrors = parsed.ok ? {} : { ...parsed.errors };
   if (!image.ok) errors.image = image.error;
+  else if (preview && !preview.ok) errors.image = preview.error;
   if (parsed.ok && !(await categoryExists(parsed.fields.categorySlug))) {
     errors.categorySlug = "Choose a category.";
   }
-  if (!parsed.ok || !image.ok || Object.keys(errors).length > 0) {
+  if (
+    !parsed.ok ||
+    !image.ok ||
+    !preview?.ok ||
+    Object.keys(errors).length > 0
+  ) {
     return { status: "error", errors, values: submitted(formData) };
   }
 
-  // Top-level key: the live site (main) only lists images inside folders,
-  // so admin uploads can't appear there by accident.
+  // The original goes to the private bucket (sold as a download) and the
+  // preview to the public one (what the shop shows), under the same key.
+  // Neither is the live site's bucket.
   const imageKey = `admin-upload-${crypto.randomUUID()}.${image.image.extension}`;
+  const removeUploads = () =>
+    Promise.all([
+      deleteObject(ORIGINALS_BUCKET, imageKey),
+      deleteObject(PREVIEWS_BUCKET, imageKey),
+    ]).catch(() => {});
   let slug: string;
   try {
-    await putObject(imageKey, image.image.bytes, image.image.contentType);
+    await putObject(
+      ORIGINALS_BUCKET,
+      imageKey,
+      image.image.bytes,
+      image.image.contentType,
+    );
+    await putObject(PREVIEWS_BUCKET, imageKey, preview.bytes, "image/jpeg");
   } catch (error) {
+    await removeUploads();
     console.error("Product image upload failed", error);
     const permanent =
       error instanceof R2UploadError && error.isPermissionProblem;
@@ -87,7 +117,7 @@ export async function createProduct(
         ? {
             image:
               "Image uploads are blocked: the shop's storage key isn't allowed to add files, so trying again won't help.",
-            form: "Uploads need an R2 API token with Object Read & Write access for the image bucket. Once it's set, create the product again.",
+            form: "Uploads need an R2 API token with Object Read & Write access to the originals and previews buckets. Once it's set, create the product again.",
           }
         : {
             image:
@@ -100,7 +130,7 @@ export async function createProduct(
     slug = await insertProduct(parsed.fields, imageKey, image.image);
   } catch (error) {
     console.error("Saving product failed", error);
-    await deleteObject(imageKey).catch(() => {});
+    await removeUploads();
     return {
       status: "error",
       errors: { form: "The product couldn't be saved. Please try again." },

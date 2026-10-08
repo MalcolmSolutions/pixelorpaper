@@ -1,4 +1,5 @@
 import { readImageSize } from "@/lib/image-size";
+import { previewEdge } from "@/lib/preview-size";
 import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
 
 // Server-side validation of the admin product form. Nothing from the browser
@@ -29,7 +30,11 @@ export type UploadedImage = {
 
 export type FieldErrors = Partial<
   Record<
-    keyof ProductFields | `price_${PrintSizeName}` | "image" | "form",
+    | keyof ProductFields
+    | `price_${PrintSizeName}`
+    | "image"
+    | "preview"
+    | "form",
     string
   >
 >;
@@ -150,4 +155,55 @@ export async function parseImage(
     };
   }
   return { ok: true, image: { bytes, ...type, ...size } };
+}
+
+const MAX_PREVIEW_BYTES = 5 * 1024 * 1024;
+
+/**
+ * The web preview the admin's browser made from the original (see
+ * components/admin/product-form.tsx). Checked here rather than trusted: it
+ * must be a JPEG at the size the preview rule gives for this original, with
+ * the same shape, so a full-size image can't be published as a "preview".
+ */
+export async function parsePreview(
+  value: FormDataEntryValue | null,
+  original: Pick<UploadedImage, "width" | "height">,
+): Promise<{ ok: true; bytes: ArrayBuffer } | { ok: false; error: string }> {
+  if (!(value instanceof File) || value.size === 0) {
+    return {
+      ok: false,
+      error:
+        "The preview wasn't created. Choose the image again (JavaScript is needed).",
+    };
+  }
+  if (value.size > MAX_PREVIEW_BYTES) {
+    return {
+      ok: false,
+      error: "The preview is too large. Choose the image again.",
+    };
+  }
+  const bytes = await value.arrayBuffer();
+  const head = new Uint8Array(bytes.slice(0, 3));
+  const size = readImageSize(Buffer.from(bytes));
+  if (head[0] !== 0xff || head[1] !== 0xd8 || head[2] !== 0xff || !size) {
+    return {
+      ok: false,
+      error: "The preview couldn't be read. Choose the image again.",
+    };
+  }
+  // Long sides and shape, so it doesn't matter which way up either is stored.
+  const expected = previewEdge(Math.max(original.width, original.height));
+  const ratio = (w: number, h: number) => Math.max(w, h) / Math.min(w, h);
+  if (
+    Math.abs(Math.max(size.width, size.height) - expected) > 2 ||
+    Math.abs(
+      ratio(size.width, size.height) - ratio(original.width, original.height),
+    ) > 0.02
+  ) {
+    return {
+      ok: false,
+      error: "The preview doesn't match the image. Choose the image again.",
+    };
+  }
+  return { ok: true, bytes };
 }
