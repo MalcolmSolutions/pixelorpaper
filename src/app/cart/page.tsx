@@ -5,6 +5,7 @@ import { startCheckout } from "@/app/checkout/actions";
 import { SubmitButton } from "@/components/cart/submit-button";
 import { PrintThumbnail } from "@/components/print-thumbnail";
 import { getCart, MAX_QUANTITY, type CartLine } from "@/lib/cart";
+import { describeFormat, isDigital } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -22,6 +23,11 @@ const CHECKOUT_NOTICES: Record<
   unavailable: {
     title: "Some prints are no longer available",
     body: "We've removed them from your cart. Please check your order before checking out again.",
+    urgent: true,
+  },
+  "downloads-not-ready": {
+    title: "Digital downloads can't be bought just yet",
+    body: "Remove the download from your cart to check out your prints. Downloads will be available very soon.",
     urgent: true,
   },
   error: {
@@ -164,56 +170,60 @@ function CartRow({ line }: { line: CartLine }) {
           <p className="shrink-0 tabular-nums">{formatPrice(line.lineTotal)}</p>
         </div>
         <p className="text-sm text-ink-muted tabular-nums">
-          {size.name} · {size.widthMm / 10} × {size.heightMm / 10} cm ·{" "}
-          {formatPrice(line.unitPrice)} each
+          {describeFormat(size, product.image)} · {formatPrice(line.unitPrice)}{" "}
+          each
         </p>
 
         <div className="flex items-center gap-5 pt-2">
-          <div
-            role="group"
-            aria-label={`Quantity of ${product.name}, ${size.name}`}
-            className="flex items-center border"
-          >
-            <form
-              action={updateQuantity.bind(
-                null,
-                product.id,
-                size.name,
-                quantity - 1,
-              )}
+          {isDigital(size) ? (
+            <span className="text-sm text-ink-muted">Qty 1</span>
+          ) : (
+            <div
+              role="group"
+              aria-label={`Quantity of ${product.name}, ${size.name}`}
+              className="flex items-center border"
             >
-              <SubmitButton
-                aria-label={
-                  quantity === 1 ? "Remove item" : "Decrease quantity"
-                }
-                className="size-10 hover:bg-sand-light disabled:opacity-40"
+              <form
+                action={updateQuantity.bind(
+                  null,
+                  product.id,
+                  size.name,
+                  quantity - 1,
+                )}
               >
-                −
-              </SubmitButton>
-            </form>
-            <span
-              className="w-8 text-center text-sm tabular-nums"
-              aria-live="polite"
-            >
-              {quantity}
-            </span>
-            <form
-              action={updateQuantity.bind(
-                null,
-                product.id,
-                size.name,
-                quantity + 1,
-              )}
-            >
-              <SubmitButton
-                aria-label="Increase quantity"
-                disabled={quantity >= MAX_QUANTITY}
-                className="size-10 hover:bg-sand-light disabled:opacity-40"
+                <SubmitButton
+                  aria-label={
+                    quantity === 1 ? "Remove item" : "Decrease quantity"
+                  }
+                  className="size-10 hover:bg-sand-light disabled:opacity-40"
+                >
+                  −
+                </SubmitButton>
+              </form>
+              <span
+                className="w-8 text-center text-sm tabular-nums"
+                aria-live="polite"
               >
-                +
-              </SubmitButton>
-            </form>
-          </div>
+                {quantity}
+              </span>
+              <form
+                action={updateQuantity.bind(
+                  null,
+                  product.id,
+                  size.name,
+                  quantity + 1,
+                )}
+              >
+                <SubmitButton
+                  aria-label="Increase quantity"
+                  disabled={quantity >= MAX_QUANTITY}
+                  className="size-10 hover:bg-sand-light disabled:opacity-40"
+                >
+                  +
+                </SubmitButton>
+              </form>
+            </div>
+          )}
           <form action={removeFromCart.bind(null, product.id, size.name)}>
             <SubmitButton className="link text-sm text-ink-muted hover:text-ink">
               Remove

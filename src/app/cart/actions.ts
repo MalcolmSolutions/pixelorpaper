@@ -6,7 +6,7 @@ import {
   readCartEntries,
   writeCartEntries,
 } from "@/lib/cart";
-import { getPrintSize } from "@/lib/print-sizes";
+import { DIGITAL_DOWNLOAD, getFormat } from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 
 export type CartActionResult = { ok: true } | { ok: false; error: string };
@@ -18,7 +18,7 @@ async function validate(productId: unknown, size: unknown) {
   if (typeof productId !== "string" || typeof size !== "string") {
     return "Invalid request.";
   }
-  if (!getPrintSize(size)) return "That size isn't available.";
+  if (!getFormat(size)) return "That size isn't available.";
   if (!(await getProductById(productId))?.available) {
     return "That print is no longer available.";
   }
@@ -37,6 +37,9 @@ export async function addToCart(
     (e) => e.productId === productId && e.size === size,
   );
   if (existing) {
+    if (size === DIGITAL_DOWNLOAD.name) {
+      return { ok: false, error: "The download is already in your cart." };
+    }
     if (existing.quantity >= MAX_QUANTITY) {
       return {
         ok: false,
@@ -73,7 +76,10 @@ export async function updateQuantity(
     if ((await validate(productId, size)) !== null) {
       entries.splice(index, 1);
     } else {
-      entries[index].quantity = Math.min(quantity, MAX_QUANTITY);
+      entries[index].quantity = Math.min(
+        quantity,
+        size === DIGITAL_DOWNLOAD.name ? 1 : MAX_QUANTITY,
+      );
     }
   }
   await writeCartEntries(entries);

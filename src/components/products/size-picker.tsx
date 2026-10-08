@@ -3,21 +3,31 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { addToCartForm } from "@/app/cart/actions";
-import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
+import {
+  DIGITAL_DOWNLOAD,
+  isDigital,
+  priceOf,
+  PRINT_SIZES,
+  type Format,
+  type PrintSizeName,
+} from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
 /**
- * Print size options with the selected size's price and the cart button.
- * Prices are for display; the server prices the cart itself.
+ * Print sizes and the digital download, with the selected option's price
+ * and the cart button. Prices are for display; the server prices the cart.
  */
 export function SizePicker({
   productId,
   prices,
+  image,
 }: {
   productId: string;
   prices: Record<PrintSizeName, number>;
+  /** Full-resolution size of the original, as sold in the download. */
+  image: { width: number; height: number };
 }) {
-  const [selected, setSelected] = useState(PRINT_SIZES[1]);
+  const [selected, setSelected] = useState<Format>(PRINT_SIZES[1]);
   const [result, formAction, pending] = useActionState(addToCartForm, null);
   // The result only describes the size that was submitted.
   const showResult = !pending && result?.size === selected.name;
@@ -28,18 +38,33 @@ export function SizePicker({
       <input type="hidden" name="size" value={selected.name} />
 
       <p className="text-lg tabular-nums">
-        {formatPrice(prices[selected.name])}{" "}
+        {formatPrice(priceOf(prices, selected))}{" "}
         <span className="text-sm text-ink-muted">incl. VAT</span>
       </p>
 
       <div className="space-y-3">
         <p className="eyebrow">
-          Size: <span className="text-ink">{selected.name}</span>{" "}
-          <span className="normal-case tracking-normal">
-            ({selected.widthMm / 10} × {selected.heightMm / 10} cm)
-          </span>
+          {isDigital(selected) ? (
+            <>
+              Format: <span className="text-ink">{selected.label}</span>{" "}
+              <span className="normal-case tracking-normal">
+                ({image.width} × {image.height} px)
+              </span>
+            </>
+          ) : (
+            <>
+              Size: <span className="text-ink">{selected.name}</span>{" "}
+              <span className="normal-case tracking-normal">
+                ({selected.widthMm / 10} × {selected.heightMm / 10} cm)
+              </span>
+            </>
+          )}
         </p>
-        <div role="group" aria-label="Size" className="grid grid-cols-4 gap-2">
+        <div
+          role="group"
+          aria-label="Size or format"
+          className="grid grid-cols-4 gap-2"
+        >
           {PRINT_SIZES.map((size) => (
             <button
               key={size.name}
@@ -54,7 +79,24 @@ export function SizePicker({
               </span>
             </button>
           ))}
+          <button
+            type="button"
+            aria-pressed={isDigital(selected)}
+            onClick={() => setSelected(DIGITAL_DOWNLOAD)}
+            className="chip col-span-4 justify-between gap-3 px-4 py-2"
+          >
+            <span className="font-medium">{DIGITAL_DOWNLOAD.label}</span>
+            <span className="text-xs tabular-nums">
+              {formatPrice(DIGITAL_DOWNLOAD.price)}
+            </span>
+          </button>
         </div>
+        {isDigital(selected) && (
+          <p className="text-sm text-ink-muted">
+            The full-resolution image as a JPEG file, to download as soon as
+            payment clears. Available to UK customers only.
+          </p>
+        )}
       </div>
 
       <div className="space-y-3">

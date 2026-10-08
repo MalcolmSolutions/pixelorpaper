@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/lib/auth";
+import { isDigital } from "@/lib/print-sizes";
 import { getCart, readCartEntries, writeCartEntries } from "@/lib/cart";
 import {
   attachCheckoutSession,
@@ -26,6 +27,10 @@ const SESSION_LIFETIME_SECONDS = 60 * 60;
 export async function startCheckout() {
   const cart = await getCart();
   if (cart.lines.length === 0) redirect("/cart");
+  // Download delivery isn't built yet, so no one can pay for one.
+  if (cart.lines.some((line) => isDigital(line.size))) {
+    redirect("/cart?checkout=downloads-not-ready");
+  }
   if (cart.removedCount > 0) {
     await writeCartEntries(await readCartEntries()); // drops unavailable lines
     redirect("/cart?checkout=unavailable");
@@ -65,7 +70,9 @@ export async function startCheckout() {
             currency: "gbp",
             unit_amount: line.unitPrice,
             product_data: {
-              name: `${line.product.name} (${line.size.name} print)`,
+              name: isDigital(line.size)
+                ? `${line.product.name} (digital download)`
+                : `${line.product.name} (${line.size.name} print)`,
               images: [line.product.image.src],
               metadata: { product_id: line.product.id, size: line.size.name },
             },

@@ -1,4 +1,5 @@
 import { PrintThumbnail } from "@/components/print-thumbnail";
+import { DIGITAL_DOWNLOAD } from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
 import type { Order, OrderItem, PaymentStatus } from "@/types/order";
@@ -50,8 +51,17 @@ export async function OrderItems({
                 {/* Name and price as ordered, even if the shop has changed. */}
                 <p className="font-medium">{item.product_name}</p>
                 <p className="text-sm text-ink-muted tabular-nums">
-                  {item.size} print · Qty {item.quantity} ·{" "}
-                  {formatPrice(item.unit_price_pence)} each
+                  {item.size === DIGITAL_DOWNLOAD.name ? (
+                    <>
+                      {DIGITAL_DOWNLOAD.label} ·{" "}
+                      {formatPrice(item.unit_price_pence)}
+                    </>
+                  ) : (
+                    <>
+                      {item.size} print · Qty {item.quantity} ·{" "}
+                      {formatPrice(item.unit_price_pence)} each
+                    </>
+                  )}
                 </p>
               </div>
               <p className="shrink-0 tabular-nums">

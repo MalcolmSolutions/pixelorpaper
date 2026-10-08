@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/section-heading";
-import { PRINT_SIZES } from "@/lib/print-sizes";
+import { DIGITAL_DOWNLOAD, PRINT_SIZES } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
 const LARGEST = Math.max(...PRINT_SIZES.map((s) => s.widthMm));
@@ -9,7 +9,7 @@ export function PriceList() {
     <section className="container-page pb-section">
       <SectionHeading
         eyebrow="Pricing"
-        title="Print sizes"
+        title="Prices"
         link={{ href: "/products", label: "Choose a print" }}
       />
       <ul className="grid grid-cols-2 gap-x-gutter gap-y-10 md:grid-cols-4">
@@ -30,7 +30,9 @@ export function PriceList() {
               <h3 className="font-sans text-sm font-medium tracking-normal">
                 {size.name}
               </h3>
-              <p className="text-sm tabular-nums">{formatPrice(size.standardPrice)}</p>
+              <p className="text-sm tabular-nums">
+                {formatPrice(size.standardPrice)}
+              </p>
             </div>
             <p className="mt-0.5 text-xs text-ink-muted tabular-nums">
               {size.widthMm / 10} × {size.heightMm / 10} cm
@@ -38,9 +40,24 @@ export function PriceList() {
           </li>
         ))}
       </ul>
+      <div className="mt-10 flex flex-col gap-1 border-y py-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+        <div>
+          <h3 className="font-sans text-sm font-medium tracking-normal">
+            {DIGITAL_DOWNLOAD.label}
+          </h3>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            The full-resolution image file of any print, to download as soon as
+            payment clears. UK customers only.
+          </p>
+        </div>
+        <p className="text-sm tabular-nums">
+          {formatPrice(DIGITAL_DOWNLOAD.price)}
+        </p>
+      </div>
       <p className="mt-8 text-sm text-ink-muted">
-        Every print is available in all four sizes. These are our standard
-        prices, including UK VAT; a few prints may be priced differently.
+        Every print is available in all four sizes or as a download. These are
+        our standard prices, including UK VAT; a few prints may be priced
+        differently.
       </p>
     </section>
   );

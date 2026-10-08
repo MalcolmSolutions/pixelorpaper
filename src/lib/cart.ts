@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getPrintSize, type PrintSize } from "@/lib/print-sizes";
+import { getFormat, isDigital, priceOf, type Format } from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 import type { Product } from "@/types/product";
 
@@ -15,7 +15,8 @@ export type CartEntry = { productId: string; size: string; quantity: number };
 
 export type CartLine = {
   product: Product;
-  size: PrintSize;
+  /** A printed size, or the digital download. */
+  size: Format;
   quantity: number;
   /** Pence, VAT inclusive. */
   unitPrice: number;
@@ -76,7 +77,7 @@ export async function readCartEntries(): Promise<CartEntry[]> {
 
 async function isAvailable(entry: CartEntry) {
   return (
-    getPrintSize(entry.size) !== undefined &&
+    getFormat(entry.size) !== undefined &&
     (await getProductById(entry.productId))?.available === true
   );
 }
@@ -111,16 +112,18 @@ export async function getCart(): Promise<Cart> {
   const entries = await readCartEntries();
   const resolved = await Promise.all(
     entries.map(async (entry) => {
-      const size = getPrintSize(entry.size);
+      const size = getFormat(entry.size);
       const product = size && (await getProductById(entry.productId));
       if (!size || !product?.available) return undefined;
-      const unitPrice = product.prices[size.name];
+      // Priced on the server from current data; one download is all anyone needs.
+      const unitPrice = priceOf(product.prices, size);
+      const quantity = isDigital(size) ? 1 : entry.quantity;
       return {
         product,
         size,
-        quantity: entry.quantity,
+        quantity,
         unitPrice,
-        lineTotal: unitPrice * entry.quantity,
+        lineTotal: unitPrice * quantity,
       } satisfies CartLine;
     }),
   );

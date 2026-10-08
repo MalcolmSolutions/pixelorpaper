@@ -29,3 +29,45 @@ export function standardPrices(): Record<PrintSizeName, number> {
     PRINT_SIZES.map((size) => [size.name, size.standardPrice]),
   ) as Record<PrintSizeName, number>;
 }
+
+/**
+ * The full-resolution image file, sold as a download. One price for every
+ * print (not set per product), and at most one per order line.
+ */
+export const DIGITAL_DOWNLOAD = {
+  name: "DIGITAL",
+  label: "Digital download",
+  price: 500,
+} as const;
+
+export type DigitalDownload = typeof DIGITAL_DOWNLOAD;
+
+/** Anything a print can be bought as: a printed size or the download. */
+export type Format = PrintSize | DigitalDownload;
+export type FormatName = Format["name"];
+
+export function isDigital(format: Format): format is DigitalDownload {
+  return format.name === DIGITAL_DOWNLOAD.name;
+}
+
+export function getFormat(name: string): Format | undefined {
+  return name === DIGITAL_DOWNLOAD.name ? DIGITAL_DOWNLOAD : getPrintSize(name);
+}
+
+/** What a product costs in a format, in pence (VAT inclusive). */
+export function priceOf(
+  prices: Record<PrintSizeName, number>,
+  format: Format,
+): number {
+  return isDigital(format) ? DIGITAL_DOWNLOAD.price : prices[format.name];
+}
+
+/** "A4 · 21 × 29.7 cm" or "Digital download · 6000 × 3376 px". */
+export function describeFormat(
+  format: Format,
+  image: { width: number; height: number },
+): string {
+  return isDigital(format)
+    ? `${format.label} · ${image.width} × ${image.height} px`
+    : `${format.name} · ${format.widthMm / 10} × ${format.heightMm / 10} cm`;
+}
