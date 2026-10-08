@@ -17,3 +17,18 @@ migrations_dir = "migrations"
 
 [observability.logs]
 enabled = true
+
+# Staging: this branch's store as its own Worker at a workers.dev address,
+# separate from the live site (the top-level "pixelorpaper" Worker, deployed
+# from main). Deploy with `npm run deploy:staging`. Bindings aren't inherited
+# by environments, so the database is repeated here. Secrets (Stripe sandbox
+# key, R2 keys, Resend, SITE_URL) are set on this Worker with
+# `npx wrangler secret put NAME --env staging`.
+[env.staging]
+name = "pixelorpaper-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "pixelorpaper-orders"
+database_id = "0f86a9c8-ec88-4d92-b22e-93ea41873f4a"
+migrations_dir = "migrations"
