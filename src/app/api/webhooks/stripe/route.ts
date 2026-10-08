@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import {
   applyAsyncPaymentFailed,
   applyAsyncPaymentSucceeded,
+  applyChargeRefunded,
   applyCheckoutCompleted,
   applyCheckoutExpired,
   beginStripeEvent,
@@ -9,16 +10,19 @@ import {
   type WebhookOutcome,
 } from "@/lib/orders";
 
+const session = (event: Stripe.Event) =>
+  event.data.object as Stripe.Checkout.Session;
+
 const HANDLERS: Partial<
-  Record<
-    Stripe.Event.Type,
-    (session: Stripe.Checkout.Session) => Promise<WebhookOutcome>
-  >
+  Record<Stripe.Event.Type, (event: Stripe.Event) => Promise<WebhookOutcome>>
 > = {
-  "checkout.session.completed": applyCheckoutCompleted,
-  "checkout.session.async_payment_succeeded": applyAsyncPaymentSucceeded,
-  "checkout.session.async_payment_failed": applyAsyncPaymentFailed,
-  "checkout.session.expired": applyCheckoutExpired,
+  "checkout.session.completed": (e) => applyCheckoutCompleted(session(e)),
+  "checkout.session.async_payment_succeeded": (e) =>
+    applyAsyncPaymentSucceeded(session(e)),
+  "checkout.session.async_payment_failed": (e) =>
+    applyAsyncPaymentFailed(session(e)),
+  "checkout.session.expired": (e) => applyCheckoutExpired(session(e)),
+  "charge.refunded": (e) => applyChargeRefunded(e.data.object as Stripe.Charge),
 };
 
 /**
@@ -56,12 +60,11 @@ export async function POST(request: Request) {
     if (!(await beginStripeEvent(event.id, event.type))) {
       return new Response("Already processed", { status: 200 });
     }
-    const session = event.data.object as Stripe.Checkout.Session;
-    const result = await handler(session);
+    const result = await handler(event);
     if (result === "unknown_order") {
       console.warn(`Stripe ${event.type} for unknown order`, {
         event: event.id,
-        session: session.id,
+        object: (event.data.object as { id?: string }).id,
       });
     }
     await finishStripeEvent(event.id);

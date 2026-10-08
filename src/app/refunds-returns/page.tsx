@@ -23,9 +23,17 @@ export default function RefundsReturnsPage() {
 
       <InfoSection title="Digital downloads">
         <p>
-          Due to the nature of digital goods, download purchases are generally
-          non-refundable after access is provided, except where required by
-          applicable consumer law.
+          Digital downloads are sold to customers with a UK billing address
+          only. A download is ready as soon as your payment clears. Before you
+          pay, we ask you to agree to this and to confirm that you understand
+          you then lose your 14-day right to cancel the download.
+        </p>
+        <p>
+          If a payment is made for a download with a billing address outside
+          the UK, we can&rsquo;t supply it and will refund it. If a file is
+          faulty or not as described, contact support@pixelorpaper.co.uk and
+          we&rsquo;ll replace it or refund you, as UK consumer law requires.
+          A refunded download can no longer be downloaded.
         </p>
       </InfoSection>
 

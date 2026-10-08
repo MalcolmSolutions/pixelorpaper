@@ -93,8 +93,9 @@ export function SizePicker({
         </div>
         {isDigital(selected) && (
           <p className="text-sm text-ink-muted">
-            The full-resolution image as a JPEG file, to download as soon as
-            payment clears. Available to UK customers only.
+            The full-resolution image file, to download as soon as payment
+            clears. Available to UK customers only. For personal use; no
+            resale or redistribution.
           </p>
         )}
       </div>

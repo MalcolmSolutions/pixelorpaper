@@ -9,6 +9,8 @@ import {
   PAYMENT_STATUS_LABELS,
 } from "@/components/checkout/order-summary";
 import { getCurrentCustomer } from "@/lib/auth";
+import { downloadState, isDownloadItem } from "@/lib/download-rules";
+import { downloadPath } from "@/lib/downloads";
 import { getCustomerOrder } from "@/lib/orders";
 import type { Order } from "@/types/order";
 
@@ -28,7 +30,8 @@ export default async function AccountOrderPage(
   if (!found) notFound();
 
   const { order, items } = found;
-  const state = orderState(order);
+  const hasPrints = items.some((item) => !isDownloadItem(item));
+  const state = orderState(order, hasPrints);
 
   return (
     <div className="container-page section">
@@ -57,7 +60,9 @@ export default async function AccountOrderPage(
             </dl>
             <p className="text-sm text-ink-muted">{state.description}</p>
           </div>
-          {state.inProgress && <OrderProgress order={order} />}
+          {state.inProgress && (
+            <OrderProgress order={order} hasPrints={hasPrints} />
+          )}
           <p className="text-sm text-ink-muted">
             Questions about this order?{" "}
             <Link href="/contact" className="link text-ink">
@@ -68,7 +73,11 @@ export default async function AccountOrderPage(
         </div>
 
         <div className="space-y-8 lg:col-span-5 lg:col-start-8">
-          <OrderItems order={order} items={items} />
+          <OrderItems
+            order={order}
+            items={items}
+            downloadHref={(item) => downloadPath(order, item)}
+          />
           <OrderDetails order={order} />
         </div>
       </div>
@@ -80,26 +89,67 @@ export default async function AccountOrderPage(
  * Where the order stands, in the customer's terms, from its saved order and
  * payment status (which only the verified Stripe webhook changes).
  */
-function orderState(order: Order): {
+function orderState(
+  order: Order,
+  hasPrints: boolean,
+): {
   label: string;
   description: string;
   /** Show the payment → printing → delivery progress. */
   inProgress: boolean;
 } {
-  if (order.payment_status === "refunded") {
+  const made = hasPrints ? "printed" : "available to download";
+  if (order.payment_status === "refunded" || order.refunded_at) {
     return {
       label: "Refunded",
-      description: "This order has been refunded and won't be printed.",
+      description: `This order has been refunded and won't be ${made}.`,
       inProgress: false,
     };
   }
   if (order.payment_status === "failed") {
     return {
       label: "Cancelled",
-      description:
-        "The payment didn't go through, so you haven't been charged and the order won't be printed.",
+      description: `The payment didn't go through, so you haven't been charged and the order won't be ${made}.`,
       inProgress: false,
     };
+  }
+  if (downloadState(order) === "outside_uk") {
+    return {
+      label: "Under review",
+      description:
+        "Downloads are for UK customers only, and this order was billed outside the UK, so we'll refund the download. We'll be in touch.",
+      inProgress: true,
+    };
+  }
+  if (!hasPrints && order.status !== "pending") {
+    // Downloads only: nothing to print or send.
+    if (order.status === "expired" || order.status === "cancelled") {
+      return {
+        label: "Not completed",
+        description: "Checkout wasn't completed, so no payment was taken.",
+        inProgress: false,
+      };
+    }
+    if (order.status === "needs_review") {
+      return {
+        label: "Under review",
+        description:
+          "We've received your payment and are checking the order before your download is ready. We'll be in touch.",
+        inProgress: true,
+      };
+    }
+    return order.payment_status === "processing"
+      ? {
+          label: "Payment processing",
+          description:
+            "Some payment methods take a few days to clear. Your download unlocks once it does.",
+          inProgress: true,
+        }
+      : {
+          label: "Ready to download",
+          description: "Your download is ready below.",
+          inProgress: true,
+        };
   }
   switch (order.status) {
     case "pending":

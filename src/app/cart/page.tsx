@@ -25,9 +25,9 @@ const CHECKOUT_NOTICES: Record<
     body: "We've removed them from your cart. Please check your order before checking out again.",
     urgent: true,
   },
-  "downloads-not-ready": {
-    title: "Digital downloads can't be bought just yet",
-    body: "Remove the download from your cart to check out your prints. Downloads will be available very soon.",
+  consent: {
+    title: "Please confirm the download terms",
+    body: "Tick the box below to agree that your download is ready straight away, or remove the download from your cart.",
     urgent: true,
   },
   error: {
@@ -44,6 +44,8 @@ export default async function CartPage(props: PageProps<"/cart">) {
   ]);
   const checkoutNotice =
     typeof checkout === "string" ? CHECKOUT_NOTICES[checkout] : undefined;
+  const hasDownloads = cart.lines.some((line) => isDigital(line.size));
+  const hasPrints = cart.lines.some((line) => !isDigital(line.size));
 
   return (
     <div className="container-page section">
@@ -96,10 +98,12 @@ export default async function CartPage(props: PageProps<"/cart">) {
                 </dt>
                 <dd className="tabular-nums">{formatPrice(cart.subtotal)}</dd>
               </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">UK tracked delivery</dt>
-                <dd>Free</dd>
-              </div>
+              {hasPrints && (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-ink-muted">UK tracked delivery</dt>
+                  <dd>Free</dd>
+                </div>
+              )}
             </dl>
             <dl className="flex items-baseline justify-between gap-4">
               <dt>
@@ -109,7 +113,26 @@ export default async function CartPage(props: PageProps<"/cart">) {
                 {formatPrice(cart.subtotal)}
               </dd>
             </dl>
-            <form action={startCheckout}>
+            <form action={startCheckout} className="space-y-5">
+              {hasDownloads && (
+                <label className="flex gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    name="download_consent"
+                    value="yes"
+                    required
+                    className="mt-0.5 size-4 shrink-0 accent-ink"
+                  />
+                  <span className="text-ink-muted">
+                    I want my download as soon as payment clears, and I
+                    understand I then lose my 14-day right to cancel it.
+                    Downloads are for UK billing addresses only.{" "}
+                    <Link href="/refunds-returns" className="link text-ink">
+                      Refunds and returns
+                    </Link>
+                  </span>
+                </label>
+              )}
               <SubmitButton
                 className="btn btn-primary btn-block"
                 pendingLabel="Redirecting to Stripe…"

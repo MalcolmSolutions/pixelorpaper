@@ -1,4 +1,4 @@
-/** Rows of the D1 tables in migrations/0001_create_orders.sql. */
+/** Rows of the D1 tables in migrations/0001_create_orders.sql (+ 0005). */
 
 /** Our fulfilment lifecycle. */
 export type OrderStatus =
@@ -38,6 +38,12 @@ export type Order = {
   created_at: string;
   updated_at: string;
   paid_at: string | null;
+  /** Billing address country from Stripe (ISO code, e.g. GB). */
+  billing_country: string | null;
+  /** When the customer waived the right to cancel their downloads. */
+  download_consent_at: string | null;
+  /** When Stripe reported the payment fully refunded. */
+  refunded_at: string | null;
 };
 
 export type OrderItem = {

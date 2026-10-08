@@ -75,7 +75,7 @@ export type ProductRow = typeof products.$inferSelect;
 export type ProductPriceRow = typeof productPrices.$inferSelect;
 
 // --- Orders and accounts (read-only mirror for admin queries) --------------
-// Created by migrations 0001–0003. All writes to these tables go through
+// Created by migrations 0001–0003 and 0005. All writes to these tables go through
 // src/lib/orders.ts and src/lib/auth.ts (raw SQL, payment state only via the
 // Stripe webhook); admin code only reads them.
 
@@ -121,6 +121,9 @@ export const orders = sqliteTable("orders", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
   paidAt: text("paid_at"),
+  billingCountry: text("billing_country"),
+  downloadConsentAt: text("download_consent_at"),
+  refundedAt: text("refunded_at"),
 });
 
 export const orderItems = sqliteTable("order_items", {

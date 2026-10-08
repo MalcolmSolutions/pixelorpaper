@@ -20,11 +20,13 @@ function newReference() {
 
 /**
  * A pending order and its items, priced from the server-side cart, linked to
- * the signed-in customer if there is one.
+ * the signed-in customer if there is one. `downloadConsent` records that the
+ * customer agreed, before paying, to lose the right to cancel downloads.
  */
 export async function createPendingOrder(
   lines: CartLine[],
   customerId: string | null = null,
+  { downloadConsent = false }: { downloadConsent?: boolean } = {},
 ) {
   const db = await getDb();
   const id = crypto.randomUUID();
@@ -36,10 +38,19 @@ export async function createPendingOrder(
   await db.batch([
     db
       .prepare(
-        `INSERT INTO orders (id, reference, customer_id, subtotal_pence, shipping_pence, total_pence)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO orders (id, reference, customer_id, subtotal_pence, shipping_pence, total_pence,
+                             download_consent_at)
+         VALUES (?, ?, ?, ?, ?, ?, CASE WHEN ? THEN ${NOW} END)`,
       )
-      .bind(id, reference, customerId, subtotal, shipping, subtotal + shipping),
+      .bind(
+        id,
+        reference,
+        customerId,
+        subtotal,
+        shipping,
+        subtotal + shipping,
+        downloadConsent ? 1 : 0,
+      ),
     ...lines.map((line) =>
       db
         .prepare(
@@ -184,18 +195,25 @@ async function outcome(
 /**
  * checkout.session.completed: the customer finished Checkout, paid now or
  * processing (delayed methods). Stripe's amount is reconciled against ours;
- * a mismatch is flagged for review instead of being placed.
+ * a mismatch is flagged for review instead of being placed. So is an order
+ * with downloads that wasn't billed to the UK or has no recorded consent:
+ * those downloads can't be supplied and need refunding.
  */
 export async function applyCheckoutCompleted(session: Stripe.Checkout.Session) {
   const db = await getDb();
   const orderId = orderIdOf(session);
   const paid = session.payment_status === "paid";
   const shipping = session.collected_information?.shipping_details ?? null;
+  const billingCountry = session.customer_details?.address?.country ?? null;
 
   const result = await db
     .prepare(
       `UPDATE orders SET
          status = CASE WHEN ? = currency AND ? = total_pence
+                        AND (NOT EXISTS (SELECT 1 FROM order_items
+                                         WHERE order_items.order_id = orders.id
+                                           AND order_items.size = 'DIGITAL')
+                             OR (? = 'GB' AND download_consent_at IS NOT NULL))
                        THEN 'placed' ELSE 'needs_review' END,
          payment_status = ?,
          paid_at = CASE WHEN ? THEN ${NOW} ELSE paid_at END,
@@ -204,12 +222,14 @@ export async function applyCheckoutCompleted(session: Stripe.Checkout.Session) {
          stripe_amount_total_pence = ?,
          customer_email = ?,
          customer_name = ?,
-         shipping_address = ?
+         shipping_address = ?,
+         billing_country = ?
        WHERE ${SESSION_MATCH} AND status = 'pending' AND payment_status = 'unpaid'`,
     )
     .bind(
       session.currency,
       session.amount_total,
+      billingCountry,
       paid ? "paid" : "processing",
       paid ? 1 : 0,
       session.id,
@@ -218,6 +238,7 @@ export async function applyCheckoutCompleted(session: Stripe.Checkout.Session) {
       session.customer_details?.email ?? null,
       shipping?.name ?? session.customer_details?.name ?? null,
       shipping ? JSON.stringify(shipping) : null,
+      billingCountry,
       orderId,
       session.id,
     )
@@ -270,6 +291,39 @@ export async function applyCheckoutExpired(session: Stripe.Checkout.Session) {
     .bind(orderId, session.id)
     .run();
   return outcome(orderId, result.meta.changes);
+}
+
+/**
+ * charge.refunded: a refund was made (in the Stripe Dashboard). Only a full
+ * refund changes the order: it records refunded_at, which withdraws any
+ * downloads. A fulfilled order keeps payment_status 'paid' (the orders table
+ * requires it), so refunded_at is what marks it.
+ */
+export async function applyChargeRefunded(
+  charge: Stripe.Charge,
+): Promise<WebhookOutcome> {
+  const pi = charge.payment_intent;
+  const paymentIntent = typeof pi === "string" ? pi : (pi?.id ?? null);
+  if (!paymentIntent) return "unknown_order";
+
+  const db = await getDb();
+  const order = await db
+    .prepare("SELECT id FROM orders WHERE stripe_payment_intent_id = ?")
+    .bind(paymentIntent)
+    .first<{ id: string }>();
+  if (!order) return "unknown_order";
+  if (!charge.refunded) return "unchanged"; // partial refund
+
+  const result = await db
+    .prepare(
+      `UPDATE orders SET refunded_at = ${NOW},
+         payment_status = CASE WHEN status = 'fulfilled' THEN payment_status
+                               ELSE 'refunded' END
+       WHERE id = ? AND payment_status = 'paid' AND refunded_at IS NULL`,
+    )
+    .bind(order.id)
+    .run();
+  return result.meta.changes > 0 ? "updated" : "unchanged";
 }
 
 // --- Webhook event log -----------------------------------------------------

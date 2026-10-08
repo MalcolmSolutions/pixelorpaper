@@ -28,6 +28,22 @@ export default function TermsOfServicePage() {
         </p>
       </InfoSection>
 
+      <InfoSection title="Digital downloads">
+        <p>
+          A digital download is the full-resolution image file of a print,
+          for customers with a UK billing address. It can be downloaded from
+          your order page as soon as payment clears; the link on the order
+          confirmation page works for 7 days, and after that you can sign in
+          with the email address used for the order. Each download is
+          recorded against your order.
+        </p>
+        <p>
+          A download is licensed for your own personal, non-commercial use,
+          including printing it for yourself. You may not resell, share,
+          sublicense or redistribute the file, or use it in products for sale.
+        </p>
+      </InfoSection>
+
       <InfoSection title="Intellectual property">
         <p>
           All images, branding, and content on this site are owned by Malcolm

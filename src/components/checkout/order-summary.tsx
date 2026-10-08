@@ -1,4 +1,9 @@
 import { PrintThumbnail } from "@/components/print-thumbnail";
+import {
+  DOWNLOAD_STATE_NOTES,
+  downloadState,
+  isDownloadItem,
+} from "@/lib/download-rules";
 import { DIGITAL_DOWNLOAD } from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
@@ -25,14 +30,22 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   refunded: "Refunded",
 };
 
-/** Items as ordered, with delivery and total. */
+/**
+ * Items as ordered, with delivery and total. Pass `downloadHref` to offer
+ * the customer their downloads (a button when ready, otherwise a note
+ * saying why not).
+ */
 export async function OrderItems({
   order,
   items,
+  downloadHref,
 }: {
   order: Order;
   items: OrderItem[];
+  downloadHref?: (item: OrderItem) => string;
 }) {
+  const downloads = downloadState(order);
+  const hasPrints = items.some((item) => !isDownloadItem(item));
   const products = await Promise.all(
     items.map((item) => getProductById(item.product_id)),
   );
@@ -63,6 +76,23 @@ export async function OrderItems({
                     </>
                   )}
                 </p>
+                {downloadHref &&
+                  isDownloadItem(item) &&
+                  (downloads === "ready" ? (
+                    // A plain link: it must not be prefetched, since every
+                    // visit is a logged download.
+                    <a
+                      href={downloadHref(item)}
+                      aria-label={`Download ${item.product_name}`}
+                      className="btn btn-outline btn-sm mt-3"
+                    >
+                      Download
+                    </a>
+                  ) : (
+                    <p className="mt-2 text-sm">
+                      {DOWNLOAD_STATE_NOTES[downloads]}
+                    </p>
+                  ))}
               </div>
               <p className="shrink-0 tabular-nums">
                 {formatPrice(item.line_total_pence)}
@@ -76,14 +106,16 @@ export async function OrderItems({
           <dt className="text-ink-muted">Subtotal</dt>
           <dd className="tabular-nums">{formatPrice(order.subtotal_pence)}</dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-ink-muted">Delivery</dt>
-          <dd>
-            {order.shipping_pence === 0
-              ? "Free"
-              : formatPrice(order.shipping_pence)}
-          </dd>
-        </div>
+        {hasPrints && (
+          <div className="flex justify-between">
+            <dt className="text-ink-muted">Delivery</dt>
+            <dd>
+              {order.shipping_pence === 0
+                ? "Free"
+                : formatPrice(order.shipping_pence)}
+            </dd>
+          </div>
+        )}
         <div className="flex justify-between text-base">
           <dt>Total</dt>
           <dd className="tabular-nums">{formatPrice(order.total_pence)}</dd>

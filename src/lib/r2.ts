@@ -30,6 +30,13 @@ const decodeXml = (s: string) =>
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&");
 
+/** SigV4 signing key for the day of `amzDate` (YYYYMMDDTHHMMSSZ). */
+const signingKey = (amzDate: string) =>
+  ["auto", "s3", "aws4_request"].reduce(
+    (key, part) => hmac(key, part),
+    hmac(`AWS4${env("R2_SECRET_ACCESS_KEY")}`, amzDate.slice(0, 8)),
+  );
+
 /**
  * SigV4 headers for `method path?query` (signed fresh on each call). Bodies
  * are sent as UNSIGNED-PAYLOAD, which R2 accepts over HTTPS.
@@ -59,11 +66,7 @@ function signRequest(
     sha256(canonicalRequest),
   ].join("\n");
 
-  const signingKey = ["auto", "s3", "aws4_request"].reduce(
-    (key, part) => hmac(key, part),
-    hmac(`AWS4${env("R2_SECRET_ACCESS_KEY")}`, amzDate.slice(0, 8)),
-  );
-  const signature = hmac(signingKey, stringToSign).toString("hex");
+  const signature = hmac(signingKey(amzDate), stringToSign).toString("hex");
 
   return {
     "x-amz-date": amzDate,
@@ -246,6 +249,52 @@ export async function deleteObject(
   if (!res.ok && res.status !== 404) {
     throw new Error(`R2 delete failed: ${res.status} ${path}`);
   }
+}
+
+/**
+ * A time-limited link to fetch one private original (SigV4 query signing).
+ * The browser downloads it as `filename`; the link stops working after
+ * `expiresSeconds`, so it's only handed out by the download route.
+ */
+export function presignedDownloadUrl(
+  bucket: typeof ORIGINALS_BUCKET,
+  key: string,
+  expiresSeconds: number,
+  filename: string,
+): string {
+  const { host, origin } = new URL(env("R2_S3_ENDPOINT"));
+  const path = objectPath(bucket, key);
+  const amzDate = new Date().toISOString().replace(/[-:]|\.\d{3}/g, "");
+  const scope = `${amzDate.slice(0, 8)}/auto/s3/aws4_request`;
+  const params: Record<string, string> = {
+    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+    "X-Amz-Credential": `${env("R2_ACCESS_KEY_ID")}/${scope}`,
+    "X-Amz-Date": amzDate,
+    "X-Amz-Expires": String(expiresSeconds),
+    "X-Amz-SignedHeaders": "host",
+    "response-cache-control": "private, no-store",
+    "response-content-disposition": `attachment; filename="${filename.replace(/[^\w.-]/g, "_")}"`,
+  };
+  const query = Object.keys(params)
+    .sort()
+    .map((k) => `${encode(k)}=${encode(params[k])}`)
+    .join("&");
+  const canonicalRequest = [
+    "GET",
+    path,
+    query,
+    `host:${host}\n`,
+    "host",
+    "UNSIGNED-PAYLOAD",
+  ].join("\n");
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    amzDate,
+    scope,
+    sha256(canonicalRequest),
+  ].join("\n");
+  const signature = hmac(signingKey(amzDate), stringToSign).toString("hex");
+  return `${origin}${path}?${query}&X-Amz-Signature=${signature}`;
 }
 
 /**

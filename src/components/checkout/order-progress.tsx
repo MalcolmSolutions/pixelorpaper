@@ -1,11 +1,15 @@
+import { downloadState } from "@/lib/download-rules";
 import { cn } from "@/lib/utils";
 import type { Order } from "@/types/order";
 
 type StepState = "done" | "current" | "upcoming";
 type Step = { title: string; detail: string; state: StepState };
 
-/** Where an order is, from payment to delivery, derived from its saved state. */
-function stepsFor(order: Order): Step[] {
+/**
+ * Where an order is, from payment to delivery (or, for an order of downloads
+ * only, to download), derived from its saved state.
+ */
+function stepsFor(order: Order, hasPrints: boolean): Step[] {
   const paid = order.payment_status === "paid";
   const fulfilled = order.status === "fulfilled";
 
@@ -23,6 +27,25 @@ function stepsFor(order: Order): Step[] {
             state: "current",
           }
         : { title: "Payment", detail: "Confirmed", state: "done" };
+
+  if (!hasPrints) {
+    const state = downloadState(order);
+    const download: Step =
+      state === "ready"
+        ? { title: "Download", detail: "Ready to download", state: "done" }
+        : state === "on_hold" || state === "outside_uk"
+          ? {
+              title: "Download",
+              detail: "On hold while we check your order",
+              state: "current",
+            }
+          : {
+              title: "Download",
+              detail: "Ready once payment is confirmed",
+              state: "upcoming",
+            };
+    return [payment, download];
+  }
 
   const printing: Step = fulfilled
     ? { title: "Printing", detail: "Printed", state: "done" }
@@ -55,8 +78,15 @@ function stepsFor(order: Order): Step[] {
   return [payment, printing, delivery];
 }
 
-export function OrderProgress({ order }: { order: Order }) {
-  const steps = stepsFor(order);
+export function OrderProgress({
+  order,
+  hasPrints = true,
+}: {
+  order: Order;
+  /** False for an order of downloads only: no printing or delivery. */
+  hasPrints?: boolean;
+}) {
+  const steps = stepsFor(order, hasPrints);
   return (
     <ol aria-label="Order progress" className="space-y-0">
       {steps.map((step, i) => (

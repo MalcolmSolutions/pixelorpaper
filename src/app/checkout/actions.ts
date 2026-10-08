@@ -20,16 +20,20 @@ const INTEGRATION_IDENTIFIER = "pixelorpaper-checkout-qhvmzrta";
 const SESSION_LIFETIME_SECONDS = 60 * 60;
 
 /**
- * Starts Stripe Checkout for the current cart. Takes nothing from the client:
- * lines come from the cart cookie, prices from the server-side price list,
- * and every print is re-checked against the bucket before an order is made.
+ * Starts Stripe Checkout for the current cart. Takes nothing from the client
+ * but the download consent box: lines come from the cart cookie, prices from
+ * the server-side price list, and every print is re-checked before an order
+ * is made.
  */
-export async function startCheckout() {
+export async function startCheckout(formData: FormData) {
   const cart = await getCart();
   if (cart.lines.length === 0) redirect("/cart");
-  // Download delivery isn't built yet, so no one can pay for one.
-  if (cart.lines.some((line) => isDigital(line.size))) {
-    redirect("/cart?checkout=downloads-not-ready");
+  const hasDownloads = cart.lines.some((line) => isDigital(line.size));
+  const hasPrints = cart.lines.some((line) => !isDigital(line.size));
+  // Downloads start once paid, so UK law needs the customer's prior consent
+  // to losing the 14-day right to cancel them.
+  if (hasDownloads && formData.get("download_consent") !== "yes") {
+    redirect("/cart?checkout=consent");
   }
   if (cart.removedCount > 0) {
     await writeCartEntries(await readCartEntries()); // drops unavailable lines
@@ -56,7 +60,9 @@ export async function startCheckout() {
   }
 
   const customer = await getCurrentCustomer();
-  const order = await createPendingOrder(cart.lines, customer?.id ?? null);
+  const order = await createPendingOrder(cart.lines, customer?.id ?? null, {
+    downloadConsent: hasDownloads,
+  });
   const site = siteUrl();
 
   let checkoutUrl: string;
@@ -85,16 +91,29 @@ export async function startCheckout() {
         payment_intent_data: {
           metadata: { order_id: order.id, order_reference: order.reference },
         },
-        shipping_address_collection: { allowed_countries: ["GB"] },
-        shipping_options: [
-          {
-            shipping_rate_data: {
-              type: "fixed_amount",
-              display_name: "Free UK tracked delivery",
-              fixed_amount: { amount: 0, currency: "gbp" },
+        ...(hasPrints && {
+          shipping_address_collection: { allowed_countries: ["GB"] },
+          shipping_options: [
+            {
+              shipping_rate_data: {
+                type: "fixed_amount",
+                display_name: "Free UK tracked delivery",
+                fixed_amount: { amount: 0, currency: "gbp" },
+              },
+            },
+          ],
+        }),
+        // Downloads are UK only, judged by the billing address (checked by
+        // the webhook, since Checkout can't restrict billing countries).
+        ...(hasDownloads && {
+          billing_address_collection: "required",
+          custom_text: {
+            submit: {
+              message:
+                "Digital downloads are for UK billing addresses only. They're ready as soon as payment clears, and you've agreed that you then lose the right to cancel them.",
             },
           },
-        ],
+        }),
         expires_at: Math.floor(Date.now() / 1000) + SESSION_LIFETIME_SECONDS,
         integration_identifier: INTEGRATION_IDENTIFIER,
         success_url: `${site}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
