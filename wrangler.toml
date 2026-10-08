@@ -11,9 +11,8 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "pixelorpaper-orders"
-# Placeholder until `npx wrangler d1 create pixelorpaper-orders` is run;
-# local development (--local, next dev, preview) does not use it.
-database_id = "00000000-0000-0000-0000-000000000000"
+# Remote database; local development (--local, next dev, preview) doesn't use it.
+database_id = "0f86a9c8-ec88-4d92-b22e-93ea41873f4a"
 migrations_dir = "migrations"
 
 [observability.logs]
