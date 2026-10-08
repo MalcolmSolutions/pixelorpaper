@@ -160,7 +160,36 @@ export async function objectExists(key: string): Promise<boolean> {
 const objectPath = (key: string) =>
   `${bucketPath()}/${key.split("/").map(encode).join("/")}`;
 
-/** Upload an object (e.g. an admin's product image). Throws on failure. */
+/** An upload R2 refused, with its HTTP status and S3 error code. */
+export class R2UploadError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string | null,
+    path: string,
+  ) {
+    super(`R2 upload failed: ${status}${code ? ` ${code}` : ""} ${path}`);
+    this.name = "R2UploadError";
+  }
+
+  /**
+   * True when the credentials can't write to the bucket (read-only or wrong
+   * key): retrying won't help until the R2 API token is changed.
+   */
+  get isPermissionProblem() {
+    return (
+      this.status === 401 ||
+      this.status === 403 ||
+      this.code === "AccessDenied" ||
+      this.code === "InvalidAccessKeyId" ||
+      this.code === "SignatureDoesNotMatch"
+    );
+  }
+}
+
+/**
+ * Upload an object (e.g. an admin's product image). Throws R2UploadError if
+ * R2 refuses it, or a network error if R2 can't be reached.
+ */
 export async function putObject(
   key: string,
   body: ArrayBuffer,
@@ -176,8 +205,13 @@ export async function putObject(
       ...signRequest("PUT", host, path, ""),
     },
   });
-  await res.arrayBuffer(); // drain (cancelling can stall Node's fetch)
-  if (!res.ok) throw new Error(`R2 upload failed: ${res.status} ${path}`);
+  // Read the body rather than cancelling it (cancelling can stall Node's
+  // fetch); on failure it holds S3's XML error code.
+  const responseText = await res.text();
+  if (!res.ok) {
+    const code = responseText.match(/<Code>([^<]+)<\/Code>/)?.[1] ?? null;
+    throw new R2UploadError(res.status, code, path);
+  }
 }
 
 /** Delete an object. Missing objects are not an error. */

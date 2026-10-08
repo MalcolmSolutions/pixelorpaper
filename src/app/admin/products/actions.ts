@@ -17,7 +17,7 @@ import {
   type FieldErrors,
 } from "@/lib/admin/product-input";
 import { CATALOG_TAG } from "@/lib/catalog";
-import { deleteObject, putObject } from "@/lib/r2";
+import { deleteObject, putObject, R2UploadError } from "@/lib/r2";
 
 export type ProductFormState =
   | { status: "idle" }
@@ -79,9 +79,20 @@ export async function createProduct(
     await putObject(imageKey, image.image.bytes, image.image.contentType);
   } catch (error) {
     console.error("Product image upload failed", error);
+    const permanent =
+      error instanceof R2UploadError && error.isPermissionProblem;
     return {
       status: "error",
-      errors: { image: "The image couldn't be uploaded. Please try again." },
+      errors: permanent
+        ? {
+            image:
+              "Image uploads are blocked: the shop's storage key isn't allowed to add files, so trying again won't help.",
+            form: "Uploads need an R2 API token with Object Read & Write access for the image bucket. Once it's set, create the product again.",
+          }
+        : {
+            image:
+              "The image couldn't be uploaded just now. Please try again in a moment.",
+          },
       values: submitted(formData),
     };
   }
