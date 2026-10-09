@@ -28,7 +28,9 @@ enabled = true
 # Staging: this branch's store as its own Worker at a workers.dev address,
 # separate from the live site (the top-level "pixelorpaper" Worker, deployed
 # from main). Deploy with `npm run deploy:staging`. Bindings aren't inherited
-# by environments, so the database is repeated here. Secrets (Stripe sandbox
+# by environments, so the database is set here: staging has its own copy
+# (catalogue and admin copied from live), so test orders never reach live
+# data. Secrets (Stripe sandbox
 # key, R2 keys, Resend, SITE_URL) are set on this Worker with
 # `npx wrangler secret put NAME --env staging`.
 [env.staging]
@@ -41,6 +43,6 @@ R2_BUCKET_NAME = "base44-images"
 
 [[env.staging.d1_databases]]
 binding = "DB"
-database_name = "pixelorpaper-orders"
-database_id = "0f86a9c8-ec88-4d92-b22e-93ea41873f4a"
+database_name = "pixelorpaper-orders-staging"
+database_id = "7610f48b-eb1a-411e-89f8-2411f6660fd5"
 migrations_dir = "migrations"

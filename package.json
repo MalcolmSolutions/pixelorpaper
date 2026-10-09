@@ -11,6 +11,7 @@
     "check:admin": "node scripts/check-admin-guards.mjs",
     "db:migrate:local": "wrangler d1 migrations apply pixelorpaper-orders --local",
     "db:migrate:remote": "wrangler d1 migrations apply pixelorpaper-orders --remote",
+    "db:migrate:staging": "wrangler d1 migrations apply pixelorpaper-orders-staging --remote --env staging",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && node scripts/strip-dev-env.mjs && opennextjs-cloudflare deploy",
     "deploy:staging": "opennextjs-cloudflare build && node scripts/strip-dev-env.mjs && opennextjs-cloudflare deploy --env staging",
