@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { InfoPage, InfoSection } from "@/components/info-page";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -28,6 +29,15 @@ export default function ContactPage() {
           Pixel or Paper is owned and operated by Malcolm Rose. All works listed
           for sale are original images by the same artist.
         </p>
+        <address className="not-italic">
+          {site.name}
+          {site.address.map((line) => (
+            <span key={line}>
+              <br />
+              {line}
+            </span>
+          ))}
+        </address>
       </InfoSection>
     </InfoPage>
   );

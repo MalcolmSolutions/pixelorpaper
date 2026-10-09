@@ -1,5 +1,7 @@
 export const site = {
   name: "Pixel or Paper",
+  /** Trader's geographic address, shown on the contact and terms pages. */
+  address: ["Peacehaven", "East Sussex", "BN10 7ST"],
   links: {
     etsy: "https://pixelorpaperart.etsy.com",
   },

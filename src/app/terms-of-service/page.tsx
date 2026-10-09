@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { InfoPage, InfoSection } from "@/components/info-page";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -13,6 +14,17 @@ export default function TermsOfServicePage() {
       title="Terms of Service"
       intro="By using Pixel or Paper and placing an order, you agree to these terms. If you do not agree, please do not use this website."
     >
+      <InfoSection title="Who we are">
+        <p>
+          {site.name} is owned and operated by Malcolm Rose,{" "}
+          {site.address.join(", ")}. Contact us at{" "}
+          <a href="mailto:support@pixelorpaper.co.uk" className="link text-ink">
+            support@pixelorpaper.co.uk
+          </a>
+          .
+        </p>
+      </InfoSection>
+
       <InfoSection title="Products and orders">
         <p>
           Product images, sizes, and finishes are presented as accurately as
