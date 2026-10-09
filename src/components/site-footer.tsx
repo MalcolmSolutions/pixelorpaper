@@ -68,9 +68,6 @@ export async function SiteFooter() {
             <FooterLink href={site.links.etsy} external>
               Etsy
             </FooterLink>
-            <FooterLink href={site.links.adobeStock} external>
-              Adobe Stock
-            </FooterLink>
           </FooterColumn>
         </div>
 
