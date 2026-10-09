@@ -4,6 +4,13 @@ main = ".open-next/worker.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
+# Settings that aren't secret. Listed here so deploys keep them (variables
+# added in the dashboard are removed by the next deploy). Secrets are set
+# with `npx wrangler secret put NAME` and never go in this file.
+[vars]
+R2_S3_ENDPOINT = "https://d6ae1ac1deda0bb0d36408fb08a0fd19.r2.cloudflarestorage.com"
+R2_BUCKET_NAME = "base44-images"
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
@@ -26,6 +33,11 @@ enabled = true
 # `npx wrangler secret put NAME --env staging`.
 [env.staging]
 name = "pixelorpaper-staging"
+
+# Vars aren't inherited by environments either.
+[env.staging.vars]
+R2_S3_ENDPOINT = "https://d6ae1ac1deda0bb0d36408fb08a0fd19.r2.cloudflarestorage.com"
+R2_BUCKET_NAME = "base44-images"
 
 [[env.staging.d1_databases]]
 binding = "DB"
