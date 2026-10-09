@@ -15,6 +15,7 @@
     "deploy": "opennextjs-cloudflare build && node scripts/strip-dev-env.mjs && opennextjs-cloudflare deploy",
     "deploy:staging": "opennextjs-cloudflare build && node scripts/strip-dev-env.mjs && opennextjs-cloudflare deploy --env staging",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "launch": "node scripts/launch.mjs",
     "db:studio": "drizzle-kit studio",
     "images:prepare": "node scripts/prepare-images.mjs"
   },
