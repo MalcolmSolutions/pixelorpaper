@@ -125,7 +125,10 @@ export async function startCheckout(formData: FormData) {
     await attachCheckoutSession(order.id, session.id);
     checkoutUrl = session.url;
   } catch (error) {
-    console.error("Could not start Stripe Checkout", error);
+    // Stripe names the rejected field in `param` (e.g. success_url).
+    console.error("Could not start Stripe Checkout", error, {
+      param: (error as { param?: string }).param,
+    });
     await markOrderCancelled(order.id);
     redirect("/cart?checkout=error");
   }
