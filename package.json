@@ -17,7 +17,6 @@
     "deploy:staging": "opennextjs-cloudflare build && node scripts/strip-dev-env.mjs && opennextjs-cloudflare deploy --env staging",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "launch": "node scripts/launch.mjs",
-    "db:studio": "drizzle-kit studio",
     "images:prepare": "node scripts/prepare-images.mjs"
   },
   "dependencies": {
@@ -35,7 +34,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "sharp": "^0.35.5",
