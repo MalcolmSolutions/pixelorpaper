@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RoomMockup, SIDEBOARD_ROOM } from "@/components/room-mockup";
+import { collectionPath } from "@/lib/seo";
 import type { Print } from "@/components/framed-print";
 import type { Category } from "@/types/category";
 
@@ -36,7 +37,7 @@ export function Hero({
               {categories.map((c) => (
                 <li key={c.slug}>
                   <Link
-                    href={`/products?category=${c.slug}`}
+                    href={collectionPath(c.slug)}
                     className="nav-link text-ink-muted hover:text-ink"
                   >
                     {c.name}

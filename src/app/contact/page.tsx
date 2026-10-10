@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Contact Pixel or Paper for order support, licensing questions, and general inquiries.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

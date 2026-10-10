@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCategories } from "@/lib/categories";
+import { collectionPath } from "@/lib/seo";
 import { site } from "@/lib/site";
 
 const PROMISES = [
@@ -45,7 +46,7 @@ export async function SiteFooter() {
           <FooterColumn title="Shop">
             <FooterLink href="/products">All prints</FooterLink>
             {categories.map((c) => (
-              <FooterLink key={c.slug} href={`/products?category=${c.slug}`}>
+              <FooterLink key={c.slug} href={collectionPath(c.slug)}>
                 {c.name}
               </FooterLink>
             ))}

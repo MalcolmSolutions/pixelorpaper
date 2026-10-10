@@ -50,6 +50,7 @@ export function toProduct(
     keywords: row.keywords,
     available: row.available,
     prices: { ...standardPrices(), ...prices },
+    updatedAt: row.updatedAt,
   };
 }
 

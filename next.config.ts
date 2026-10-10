@@ -15,6 +15,17 @@ const nextConfig: NextConfig = {
     // Cache optimised versions for a month.
     minimumCacheTTL: 2678400,
   },
+  // Staging runs on *.workers.dev; keep it out of search results so it never
+  // competes with the live site.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: ".*\\.workers\\.dev" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   experimental: {
     serverActions: {
       // Admin product images (up to 20 MB, checked in the action) plus form overhead.

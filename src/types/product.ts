@@ -37,6 +37,8 @@ export type Product = {
   available: boolean;
   /** Price per print size in pence, VAT inclusive. */
   prices: Record<PrintSizeName, number>;
+  /** When the product was last edited (ISO), if known. */
+  updatedAt?: string;
 };
 
 export type ProductSort = "featured" | "name";

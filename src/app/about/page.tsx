@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "About the Artist",
   description:
     "Meet Malcolm Rose, the artist behind Pixel or Paper, and learn how each original image is created.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

@@ -10,6 +10,7 @@ import { formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Cart",
+  robots: { index: false },
 };
 
 const CHECKOUT_NOTICES: Record<

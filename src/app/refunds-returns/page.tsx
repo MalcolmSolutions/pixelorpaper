@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Refunds and Returns",
   description:
     "Refund and return terms for print and digital purchases at Pixel or Paper.",
+  alternates: { canonical: "/refunds-returns" },
 };
 
 export default function RefundsReturnsPage() {

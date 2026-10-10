@@ -15,6 +15,11 @@ R2_BUCKET_NAME = "base44-images"
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+# Cloudflare Images: lets OpenNext resize /_next/image to each card's size
+# and serve WebP/AVIF. Without it every request gets the full preview.
+[images]
+binding = "IMAGES"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "pixelorpaper-orders"
@@ -40,6 +45,9 @@ name = "pixelorpaper-staging"
 [env.staging.vars]
 R2_S3_ENDPOINT = "https://d6ae1ac1deda0bb0d36408fb08a0fd19.r2.cloudflarestorage.com"
 R2_BUCKET_NAME = "base44-images"
+
+[env.staging.images]
+binding = "IMAGES"
 
 [[env.staging.d1_databases]]
 binding = "DB"

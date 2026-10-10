@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "How Pixel or Paper uses personal information for orders, customer accounts and support, and the cookies the site uses.",
+  alternates: { canonical: "/privacy-policy" },
 };
 
 // Keep in step with the code: cookies are set in src/lib/cart.ts and

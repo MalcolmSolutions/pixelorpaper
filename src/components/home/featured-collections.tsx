@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RoomMockup } from "@/components/room-mockup";
 import { SectionHeading } from "@/components/section-heading";
+import { collectionPath } from "@/lib/seo";
 import type { Category } from "@/types/category";
 import type { Product } from "@/types/product";
 
@@ -27,7 +28,7 @@ export function FeaturedCollections({
           return (
             <li key={category.slug} className="w-[82%] sm:w-[60%] md:w-auto">
               <Link
-                href={`/products?category=${category.slug}`}
+                href={collectionPath(category.slug)}
                 className="group block"
               >
                 <div className="overflow-hidden">
