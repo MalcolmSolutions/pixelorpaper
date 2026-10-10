@@ -21,6 +21,12 @@ const inter = Inter({
   display: "swap",
 });
 
+// Every page shows catalog data (the footer lists collections), so render on
+// request: prerendering would bake in whatever database the build machine has
+// (empty on Cloudflare's builder, local dev data on a laptop). The catalog
+// itself stays cached for an hour, so this is cheap.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
