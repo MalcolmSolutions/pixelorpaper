@@ -4,9 +4,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { SizePicker } from "@/components/products/size-picker";
+import { one } from "@/components/products/product-listing";
 import { wallColour } from "@/components/room-mockup";
 import { SectionHeading } from "@/components/section-heading";
 import { getCategory } from "@/lib/categories";
+import { getPrintSize } from "@/lib/print-sizes";
 import { getProductBySlug, getProducts } from "@/lib/products";
 import {
   collectionPath,
@@ -53,6 +55,8 @@ export default async function ProductPage(
   props: PageProps<"/products/[slug]">,
 ) {
   const { slug } = await props.params;
+  // Product feeds link each size as ?size=A3, so it opens at that price.
+  const { size } = await props.searchParams;
   const product = await getProductBySlug(slug);
 
   if (!product) notFound();
@@ -123,6 +127,7 @@ export default async function ProductPage(
               productId={product.id}
               prices={product.prices}
               image={product.image}
+              initialSize={getPrintSize(one(size) ?? "")}
             />
           ) : (
             <div className="space-y-4">

@@ -21,13 +21,16 @@ export function SizePicker({
   productId,
   prices,
   image,
+  initialSize = PRINT_SIZES[1],
 }: {
   productId: string;
   prices: Record<PrintSizeName, number>;
   /** Full-resolution size of the original, as sold in the download. */
   image: { width: number; height: number };
+  /** Selected at first: A4, or the size a link asked for (?size=A3). */
+  initialSize?: Format;
 }) {
-  const [selected, setSelected] = useState<Format>(PRINT_SIZES[1]);
+  const [selected, setSelected] = useState<Format>(initialSize);
   const [result, formAction, pending] = useActionState(addToCartForm, null);
   // The result only describes the size that was submitted.
   const showResult = !pending && result?.size === selected.name;
@@ -94,8 +97,8 @@ export function SizePicker({
         {isDigital(selected) && (
           <p className="text-sm text-ink-muted">
             The full-resolution image file, to download as soon as payment
-            clears. Available to UK customers only. For personal use; no
-            resale or redistribution.
+            clears. Available to UK customers only. For personal use; no resale
+            or redistribution.
           </p>
         )}
       </div>
