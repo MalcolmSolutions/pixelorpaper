@@ -36,9 +36,12 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   openGraph: OPEN_GRAPH,
   twitter: { card: "summary_large_image" },
-  // Bing Webmaster Tools ownership check.
+  // Bing Webmaster Tools and Pinterest ownership checks.
   verification: {
-    other: { "msvalidate.01": "E13AD858A5C16246A329A7692B853B14" },
+    other: {
+      "msvalidate.01": "E13AD858A5C16246A329A7692B853B14",
+      "p:domain_verify": "39f7918cc5b86f8db590d08221b4f2b5",
+    },
   },
 };
 
