@@ -30,6 +30,10 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   openGraph: OPEN_GRAPH,
   twitter: { card: "summary_large_image" },
+  // Bing Webmaster Tools ownership check.
+  verification: {
+    other: { "msvalidate.01": "E13AD858A5C16246A329A7692B853B14" },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
