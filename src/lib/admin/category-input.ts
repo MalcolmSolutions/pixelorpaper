@@ -31,9 +31,10 @@ export function parseCategoryFields(
     errors.name = "Use at least one letter or number.";
   }
 
-  const description = text(formData, "description");
-  if (description.length > 300) {
-    errors.description = "Keep the description to 300 characters.";
+  // An intro of a paragraph or two; blank lines separate paragraphs.
+  const description = text(formData, "description").replace(/\r\n?/g, "\n");
+  if (description.length > 1500) {
+    errors.description = "Keep the description to 1,500 characters.";
   }
 
   const wall = text(formData, "wall");

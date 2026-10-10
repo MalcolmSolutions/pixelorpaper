@@ -72,10 +72,16 @@ export async function ProductListing({
       <header className="mb-8 max-w-prose space-y-3 md:mb-10">
         <p className="eyebrow">{category ? "Photographic prints" : "Shop"}</p>
         <h1>{category?.name ?? "All prints"}</h1>
-        <p className="text-ink-muted">
-          {category?.description ||
-            "Photographic prints from our travels, printed to order."}
-        </p>
+        {(
+          category?.description ||
+          "Photographic prints from our travels, printed to order."
+        )
+          .split(/\n\s*\n/)
+          .map((paragraph, i) => (
+            <p key={i} className="text-ink-muted">
+              {paragraph}
+            </p>
+          ))}
       </header>
 
       <nav

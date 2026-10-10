@@ -89,7 +89,7 @@ export default async function AdminCategoriesPage() {
                     )}
                   </p>
                   {category.description && (
-                    <p className="max-w-prose text-sm text-ink-muted">
+                    <p className="line-clamp-2 max-w-prose text-sm text-ink-muted">
                       {category.description}
                     </p>
                   )}

@@ -78,15 +78,16 @@ export function CategoryForm({
         <Field
           label="Description"
           name={id("description")}
-          hint="Shown at the top of the category in the shop."
+          hint="Shown at the top of the collection in the shop. Leave a blank line between paragraphs. Google shows about the first 155 characters."
           error={errors.description}
           render={(props) => (
-            <input
+            <textarea
               {...props}
               name="description"
               defaultValue={value("description")}
-              maxLength={300}
-              className={inputClass}
+              maxLength={1500}
+              rows={6}
+              className={`${inputClass} py-3`}
             />
           )}
         />

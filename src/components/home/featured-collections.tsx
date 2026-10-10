@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RoomMockup } from "@/components/room-mockup";
 import { SectionHeading } from "@/components/section-heading";
 import { collectionPath } from "@/lib/seo";
+import { firstSentence } from "@/lib/utils";
 import type { Category } from "@/types/category";
 import type { Product } from "@/types/product";
 
@@ -51,7 +52,7 @@ export function FeaturedCollections({
                   </h3>
                 </div>
                 <p className="mt-1.5 text-sm text-ink-muted">
-                  {category.description}
+                  {firstSentence(category.description)}
                 </p>
                 <p className="mt-3 text-xs text-ink-muted">
                   {category.count} prints
