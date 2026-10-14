@@ -20,6 +20,14 @@ export default function RefundsReturnsPage() {
           or defective, contact support@pixelorpaper.co.uk within 14 days of
           delivery with your order reference and clear photos of the issue.
         </p>
+        <p>
+          If you change your mind about a print, you can cancel within 14 days
+          of delivery. Email support@pixelorpaper.co.uk with your order
+          reference, then post the print back to us undamaged, at your own
+          cost. We&rsquo;ll
+          refund you within 14 days of receiving it. This applies to prints
+          only, not digital downloads.
+        </p>
       </InfoSection>
 
       <InfoSection title="Digital downloads">

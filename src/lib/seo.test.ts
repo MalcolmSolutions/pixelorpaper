@@ -59,6 +59,11 @@ describe("productJsonLd", () => {
     assert.equal(item.offers.priceCurrency, "GBP");
     assert.equal(item.offers.availability, "https://schema.org/InStock");
     assert.equal(item.offers.shippingDetails.shippingRate.value, "0");
+    assert.equal(
+      item.offers.shippingDetails.deliveryTime.transitTime.maxValue,
+      3,
+    );
+    assert.equal(item.offers.hasMerchantReturnPolicy.merchantReturnDays, 14);
     assert.deepEqual(
       crumbs.itemListElement.map((c: { item: string }) => c.item),
       [

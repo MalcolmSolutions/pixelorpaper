@@ -80,6 +80,35 @@ export function productJsonLd(product: Product, category?: Category) {
             "@type": "DefinedRegion",
             addressCountry: "GB",
           },
+          // Dispatched within 48 hours, then up to 72 hours in the post.
+          deliveryTime: {
+            "@type": "ShippingDeliveryTime",
+            handlingTime: {
+              "@type": "QuantitativeValue",
+              minValue: 0,
+              maxValue: 2,
+              unitCode: "DAY",
+            },
+            transitTime: {
+              "@type": "QuantitativeValue",
+              minValue: 1,
+              maxValue: 3,
+              unitCode: "DAY",
+            },
+          },
+        },
+        // Prints only: this offer is never a download. Must match the
+        // Refunds and Returns page.
+        hasMerchantReturnPolicy: {
+          "@type": "MerchantReturnPolicy",
+          applicableCountry: "GB",
+          returnPolicyCountry: "GB",
+          returnPolicyCategory:
+            "https://schema.org/MerchantReturnFiniteReturnWindow",
+          merchantReturnDays: 14,
+          returnMethod: "https://schema.org/ReturnByMail",
+          // The customer posts it back and pays the postage themselves.
+          returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
         },
       },
     },
