@@ -7,6 +7,7 @@ export const ADMIN_SECTIONS = [
   { href: "/admin/products", label: "Products" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/fulfilment", label: "Fulfilment" },
 ] as const;
 
 /**

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { FulfilmentPanel } from "@/components/admin/fulfilment-panel";
 import {
   formatDateTime,
   ORDER_STATUS_LABELS,
@@ -15,6 +16,8 @@ import {
 } from "@/components/checkout/order-summary";
 import { requireAdmin } from "@/lib/admin";
 import { getOrderForAdmin } from "@/lib/admin/orders";
+import { DIGITAL_DOWNLOAD } from "@/lib/print-sizes";
+import { getMode, getPrintJob } from "@/lib/printspace/fulfilment";
 import { formatPrice } from "@/lib/utils";
 
 export async function generateMetadata(
@@ -34,6 +37,12 @@ export default async function AdminOrderPage(
   const found = await getOrderForAdmin(reference);
   if (!found) notFound();
   const { order, items, accountEmail } = found;
+  const job = await getPrintJob(order.id);
+  const hasPrints = items.some((item) => item.size !== DIGITAL_DOWNLOAD.name);
+  const canCreateJob =
+    hasPrints &&
+    order.payment_status === "paid" &&
+    ["placed", "needs_review"].includes(order.status);
 
   const inProgress =
     ["placed", "needs_review", "fulfilled"].includes(order.status) &&
@@ -93,6 +102,13 @@ export default async function AdminOrderPage(
             </dl>
             {inProgress && <OrderProgress order={order} />}
           </section>
+
+          <FulfilmentPanel
+            orderId={order.id}
+            job={job}
+            mode={getMode()}
+            canCreate={canCreateJob}
+          />
 
           <section aria-labelledby="order-customer" className="space-y-4">
             <h2 id="order-customer" className="eyebrow">

@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import Stripe from "stripe";
+import { enqueuePrintJob, processJob } from "@/lib/printspace/fulfilment";
 import {
   applyAsyncPaymentFailed,
   applyAsyncPaymentSucceeded,
@@ -24,6 +26,12 @@ const HANDLERS: Partial<
   "checkout.session.expired": (e) => applyCheckoutExpired(session(e)),
   "charge.refunded": (e) => applyChargeRefunded(e.data.object as Stripe.Charge),
 };
+
+/** Events after which an order may be paid and ready to print. */
+const PAID_EVENTS = new Set<Stripe.Event.Type>([
+  "checkout.session.completed",
+  "checkout.session.async_payment_succeeded",
+]);
 
 /**
  * Stripe webhook: the only place an order's payment state changes.
@@ -61,6 +69,20 @@ export async function POST(request: Request) {
       return new Response("Already processed", { status: 200 });
     }
     const result = await handler(event);
+    if (PAID_EVENTS.has(event.type)) {
+      // Prints go to theprintspace: queued here (safe to repeat on a
+      // retry), sent after the response so Stripe never waits on it. The
+      // cron sends anything this misses.
+      const { metadata, client_reference_id } = session(event);
+      const orderId = metadata?.order_id ?? client_reference_id ?? null;
+      if (await enqueuePrintJob(orderId)) {
+        after(() =>
+          processJob(orderId!).catch((error) =>
+            console.error(`Couldn't send print job for order ${orderId}`, error),
+          ),
+        );
+      }
+    }
     if (result === "unknown_order") {
       console.warn(`Stripe ${event.type} for unknown order`, {
         event: event.id,

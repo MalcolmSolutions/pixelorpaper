@@ -1,6 +1,7 @@
 # Cloudflare Workers config (OpenNext), matching main plus the orders database.
 name = "pixelorpaper"
-main = ".open-next/worker.js"
+# OpenNext's worker plus the fulfilment cron (worker.js).
+main = "worker.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
@@ -10,6 +11,14 @@ compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 [vars]
 R2_S3_ENDPOINT = "https://d6ae1ac1deda0bb0d36408fb08a0fd19.r2.cloudflarestorage.com"
 R2_BUCKET_NAME = "base44-images"
+# Print fulfilment through theprintspace (src/lib/printspace/rules.ts):
+# off | quote (price only, never place) | live. Switch the live site to live
+# only once quotes have been checked.
+PRINTSPACE_MODE = "off"
+
+# Every 10 minutes: send queued print jobs and check placed ones.
+[triggers]
+crons = ["*/10 * * * *"]
 
 [assets]
 directory = ".open-next/assets"
@@ -45,6 +54,11 @@ name = "pixelorpaper-staging"
 [env.staging.vars]
 R2_S3_ENDPOINT = "https://d6ae1ac1deda0bb0d36408fb08a0fd19.r2.cloudflarestorage.com"
 R2_BUCKET_NAME = "base44-images"
+# Staging never places print orders: it only prices them.
+PRINTSPACE_MODE = "quote"
+
+[env.staging.triggers]
+crons = ["*/10 * * * *"]
 
 [env.staging.images]
 binding = "IMAGES"
