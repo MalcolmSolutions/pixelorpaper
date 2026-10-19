@@ -10,6 +10,7 @@ import {
 import { Field, inputClass } from "@/components/admin/field";
 import { makePreview } from "@/components/admin/make-preview";
 import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
+import { FUJI_PRINT_COST } from "@/lib/printspace/rules";
 import { formatPrice } from "@/lib/utils";
 
 export type ProductFormValues = {
@@ -233,13 +234,17 @@ export function ProductForm({
 
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium">Prices (incl. VAT)</legend>
+          <p className="text-xs text-ink-muted">
+            Fuji is what theprintspace charges for the print on Fuji Crystal
+            Archive Matt, incl. VAT, before delivery.
+          </p>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {PRINT_SIZES.map((size) => (
               <Field
                 key={size.name}
                 label={size.name}
                 name={`price_${size.name}`}
-                hint={`Standard ${formatPrice(size.standardPrice)}`}
+                hint={`Standard ${formatPrice(size.standardPrice)} · Fuji ${formatPrice(FUJI_PRINT_COST[size.name])}`}
                 error={errors[`price_${size.name}`]}
                 render={(props) => (
                   <div className="relative">

@@ -29,6 +29,19 @@ const LIVE_SITE = "https://pixelorpaper.co.uk";
 /** Every print is Fuji Crystal Archive Matt (C-type), unframed. */
 export const PAPER_ID = "fuji-matt";
 /**
+ * What theprintspace charges us for one unframed Fuji Crystal Archive Matt
+ * print, in pence incl. VAT, before delivery: their published dropship price
+ * (lab price + 20%), checked 19 October 2026. A guide for setting prices
+ * only; the cost check uses each order's live quote.
+ */
+export const FUJI_PRINT_COST: Record<PrintSizeName, number> = {
+  A5: 662,
+  A4: 1162,
+  A3: 1436,
+  A2: 2874,
+};
+
+/**
  * No added border. theprintspace fits the whole image to the paper without
  * cropping, so a photo that isn't A-shaped gets white space on two edges.
  */
