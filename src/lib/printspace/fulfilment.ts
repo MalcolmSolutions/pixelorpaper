@@ -1,5 +1,11 @@
 import { getDb } from "@/lib/db";
-import { isDigital, getFormat, type PrintSizeName } from "@/lib/print-sizes";
+import {
+  FUJI_SIZES,
+  getFormat,
+  isDigital,
+  PRINT_SIZES,
+  type PrintSizeName,
+} from "@/lib/print-sizes";
 import {
   addDropProduct,
   createDrop,
@@ -294,10 +300,7 @@ async function work(
       missing.push(line.product_name);
       continue;
     }
-    items.push({
-      variant_id: variants[line.size as PrintSizeName],
-      quantity: line.quantity,
-    });
+    items.push({ variant_id: variants[line.size], quantity: line.quantity });
   }
   if (missing.length > 0) {
     throw new Hold(
@@ -351,11 +354,12 @@ async function work(
 /**
  * theprintspace's variant id for each size of a print, setting the print up
  * there on its first order. Null if its artwork hasn't been uploaded to
- * creativehub (artwork can't be uploaded through the API).
+ * creativehub (artwork can't be uploaded through the API). A print set up
+ * before a size was added gets its variants replaced with the full set.
  */
 async function ensureVariants(
   productId: string,
-): Promise<Record<PrintSizeName, string> | null> {
+): Promise<Record<string, string> | null> {
   const db = await getDb();
   const known = await variantsFor(productId);
   if (known) return known;
@@ -374,7 +378,15 @@ async function ensureVariants(
     }>();
   if (!product) throw new Hold(`The print ${productId} is no longer in the catalogue.`);
 
-  const upload = await findUpload(product.image_key);
+  const existing = await db
+    .prepare(
+      "SELECT ch_upload_id, ch_product_id FROM printspace_products WHERE product_id = ?",
+    )
+    .bind(productId)
+    .first<{ ch_upload_id: string; ch_product_id: string }>();
+  const upload = existing
+    ? { id: existing.ch_upload_id }
+    : await findUpload(product.image_key);
   if (!upload) return null;
 
   const { results: priceRows } = await db
@@ -390,20 +402,19 @@ async function ensureVariants(
   );
 
   const dropId = await storeDropId();
-  const chProduct = await addDropProduct(dropId, {
-    upload_id: upload.id,
-    title: product.name,
-  });
+  const chProduct = existing
+    ? { id: existing.ch_product_id }
+    : await addDropProduct(dropId, { upload_id: upload.id, title: product.name });
   await replaceVariants(dropId, chProduct.id, specs);
   const { variants } = await getVariants(chProduct.id);
 
-  const ids = {} as Record<PrintSizeName, string>;
+  const ids: Record<string, string> = {};
   for (const spec of specs) {
     const match = variants.find(
       (v) =>
         !v.is_framed &&
-        Math.round(v.print_width_mm) === spec.print_width_mm &&
-        Math.round(v.print_height_mm) === spec.print_height_mm,
+        Math.round(v.print_width_mm) === Math.round(spec.print_width_mm) &&
+        Math.round(v.print_height_mm) === Math.round(spec.print_height_mm),
     );
     if (!match) {
       throw new Error(
@@ -442,11 +453,12 @@ async function variantsFor(productId: string) {
   const { results } = await db
     .prepare("SELECT size, ch_variant_id FROM printspace_variants WHERE product_id = ?")
     .bind(productId)
-    .all<{ size: PrintSizeName; ch_variant_id: string }>();
-  if (results.length < 4) return null;
-  return Object.fromEntries(
+    .all<{ size: string; ch_variant_id: string }>();
+  const ids = Object.fromEntries(
     results.map((row) => [row.size, row.ch_variant_id]),
-  ) as Record<PrintSizeName, string>;
+  );
+  const all = [...PRINT_SIZES, ...FUJI_SIZES].every((size) => ids[size.name]);
+  return all ? ids : null;
 }
 
 /** The artwork uploaded for an image key, searched by file name. */

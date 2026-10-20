@@ -3,9 +3,15 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { addToCartForm } from "@/app/cart/actions";
+import { inputClass } from "@/components/admin/field";
 import {
   DIGITAL_DOWNLOAD,
+  formatLabel,
+  FUJI_GROUPS,
+  FUJI_SIZES,
+  getFormat,
   isDigital,
+  isFujiSize,
   priceOf,
   PRINT_SIZES,
   type Format,
@@ -16,6 +22,7 @@ import { formatPrice } from "@/lib/utils";
 /**
  * Print sizes and the digital download, with the selected option's price
  * and the cart button. Prices are for display; the server prices the cart.
+ * The main A sizes are buttons; every other Fuji size is in a drop-down.
  */
 export function SizePicker({
   productId,
@@ -56,9 +63,13 @@ export function SizePicker({
             </>
           ) : (
             <>
-              Size: <span className="text-ink">{selected.name}</span>{" "}
+              Size:{" "}
+              <span className="text-ink normal-case">
+                {formatLabel(selected)}
+              </span>{" "}
               <span className="normal-case tracking-normal">
-                ({selected.widthMm / 10} × {selected.heightMm / 10} cm)
+                ({Math.round(selected.widthMm) / 10} ×{" "}
+                {Math.round(selected.heightMm) / 10} cm)
               </span>
             </>
           )}
@@ -94,6 +105,48 @@ export function SizePicker({
             </span>
           </button>
         </div>
+        <label className="block space-y-2">
+          <span className="text-sm text-ink-muted">
+            More sizes on Fuji Crystal Archive paper
+          </span>
+          <span className="relative block">
+            <select
+              value={isFujiSize(selected) ? selected.name : ""}
+              onChange={(e) => {
+                const format = getFormat(e.target.value);
+                if (format) setSelected(format);
+              }}
+              className={`${inputClass} cursor-pointer appearance-none pr-10 tabular-nums`}
+            >
+              <option value="" disabled>
+                Choose another size…
+              </option>
+              {FUJI_GROUPS.map((group) => (
+                <optgroup key={group} label={group}>
+                  {FUJI_SIZES.filter((size) => size.group === group).map(
+                    (size) => (
+                      <option key={size.name} value={size.name}>
+                        {size.label} · {formatPrice(size.price)}
+                      </option>
+                    ),
+                  )}
+                </optgroup>
+              ))}
+            </select>
+            <svg
+              viewBox="0 0 10 6"
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 right-4 w-2.5 -translate-y-1/2"
+            >
+              <path
+                d="M1 1l4 4 4-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+              />
+            </svg>
+          </span>
+        </label>
         {isDigital(selected) && (
           <p className="text-sm text-ink-muted">
             The full-resolution image file, to download as soon as payment

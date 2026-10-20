@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { standardPrices } from "@/lib/print-sizes";
+import {
+  FUJI_SIZES,
+  PRINT_SIZES,
+  standardPrices,
+} from "@/lib/print-sizes";
 import {
   deliveryFields,
   fulfilmentMode,
@@ -32,11 +36,11 @@ describe("fulfilmentMode", () => {
 });
 
 describe("variantSpecs", () => {
-  it("makes every A size on Fuji Matt, unframed, at our prices", () => {
+  it("makes every size we sell on Fuji Matt, unframed, at our prices", () => {
     const specs = variantSpecs({ width: 2000, height: 3000 }, standardPrices());
     assert.deepEqual(
       specs.map((s) => s.size_label),
-      ["A5", "A4", "A3", "A2"],
+      [...PRINT_SIZES, ...FUJI_SIZES].map((s) => s.name),
     );
     assert.ok(specs.every((s) => s.paper_id === "fuji-matt" && !s.is_framed));
     assert.equal(specs[1].price_gbp, 12.99);
@@ -44,6 +48,16 @@ describe("variantSpecs", () => {
       [specs[1].print_width_mm, specs[1].print_height_mm],
       [210, 297],
     );
+    const a1 = specs.find((s) => s.size_label === "A1")!;
+    assert.equal(a1.price_gbp, 86.99);
+  });
+
+  it("gives every size different dimensions, so variants can be matched", () => {
+    const specs = variantSpecs({ width: 3000, height: 2000 }, standardPrices());
+    const dims = specs.map(
+      (s) => `${Math.round(s.print_width_mm)}x${Math.round(s.print_height_mm)}`,
+    );
+    assert.equal(new Set(dims).size, dims.length);
   });
 
   it("turns the paper to match a landscape image", () => {

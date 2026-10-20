@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/lib/auth";
-import { isDigital } from "@/lib/print-sizes";
+import { formatLabel, isDigital } from "@/lib/print-sizes";
 import { getCart, readCartEntries, writeCartEntries } from "@/lib/cart";
 import {
   attachCheckoutSession,
@@ -78,7 +78,7 @@ export async function startCheckout(formData: FormData) {
             product_data: {
               name: isDigital(line.size)
                 ? `${line.product.name} (digital download)`
-                : `${line.product.name} (${line.size.name} print)`,
+                : `${line.product.name} (${formatLabel(line.size)} print)`,
               images: [line.product.image.src],
               metadata: { product_id: line.product.id, size: line.size.name },
             },

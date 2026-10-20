@@ -4,7 +4,7 @@ import {
   downloadState,
   isDownloadItem,
 } from "@/lib/download-rules";
-import { DIGITAL_DOWNLOAD } from "@/lib/print-sizes";
+import { DIGITAL_DOWNLOAD, sizeLabel } from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
 import type { Order, OrderItem, PaymentStatus } from "@/types/order";
@@ -71,7 +71,7 @@ export async function OrderItems({
                     </>
                   ) : (
                     <>
-                      {item.size} print · Qty {item.quantity} ·{" "}
+                      {sizeLabel(item.size)} print · Qty {item.quantity} ·{" "}
                       {formatPrice(item.unit_price_pence)} each
                     </>
                   )}

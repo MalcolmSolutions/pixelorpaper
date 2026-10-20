@@ -8,7 +8,7 @@ import { one } from "@/components/products/product-listing";
 import { wallColour } from "@/components/room-mockup";
 import { SectionHeading } from "@/components/section-heading";
 import { getCategory } from "@/lib/categories";
-import { getPrintSize } from "@/lib/print-sizes";
+import { getFormat } from "@/lib/print-sizes";
 import { getProductBySlug, getProducts } from "@/lib/products";
 import {
   collectionPath,
@@ -127,7 +127,7 @@ export default async function ProductPage(
               productId={product.id}
               prices={product.prices}
               image={product.image}
-              initialSize={getPrintSize(one(size) ?? "")}
+              initialSize={getFormat(one(size) ?? "")}
             />
           ) : (
             <div className="space-y-4">

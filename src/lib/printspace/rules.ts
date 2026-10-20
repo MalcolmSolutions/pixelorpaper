@@ -1,4 +1,8 @@
-import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
+import {
+  FUJI_SIZES,
+  PRINT_SIZES,
+  type PrintSizeName,
+} from "@/lib/print-sizes";
 
 // Pure rules for print fulfilment through theprintspace, kept apart from the
 // API and database code so they can be unit tested.
@@ -48,7 +52,8 @@ export const FUJI_PRINT_COST: Record<PrintSizeName, number> = {
 export const BORDER = "none";
 
 export type VariantSpec = {
-  size_label: PrintSizeName;
+  /** Our size name, e.g. "A4" or "8x10in". */
+  size_label: string;
   print_width_mm: number;
   print_height_mm: number;
   price_gbp: number;
@@ -60,19 +65,23 @@ export type VariantSpec = {
 
 /**
  * The full set of variants for a print (theprintspace replaces the whole
- * set on each PUT): every A size, turned to the image's orientation, priced
- * at what we charge.
+ * set on each PUT): every size we sell, turned to the image's orientation,
+ * priced at what we charge.
  */
 export function variantSpecs(
   image: { width: number; height: number },
   prices: Record<PrintSizeName, number>,
 ): VariantSpec[] {
   const landscape = image.width > image.height;
-  return PRINT_SIZES.map((size) => ({
+  const sizes = [
+    ...PRINT_SIZES.map((size) => ({ ...size, price: prices[size.name] })),
+    ...FUJI_SIZES,
+  ];
+  return sizes.map((size) => ({
     size_label: size.name,
     print_width_mm: landscape ? size.heightMm : size.widthMm,
     print_height_mm: landscape ? size.widthMm : size.heightMm,
-    price_gbp: prices[size.name] / 100,
+    price_gbp: size.price / 100,
     is_framed: false,
     mount_board_size: "none",
     border: BORDER,
