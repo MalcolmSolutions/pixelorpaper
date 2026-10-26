@@ -48,8 +48,8 @@ describe("variantSpecs", () => {
       [specs[1].print_width_mm, specs[1].print_height_mm],
       [210, 297],
     );
-    const a1 = specs.find((s) => s.size_label === "A1")!;
-    assert.equal(a1.price_gbp, 86.99);
+    const fuji = specs.find((s) => s.size_label === "8x10in")!;
+    assert.equal(fuji.price_gbp, 15.99);
   });
 
   it("gives every size different dimensions, so variants can be matched", () => {

@@ -7,7 +7,6 @@ import { inputClass } from "@/components/admin/field";
 import {
   DIGITAL_DOWNLOAD,
   formatLabel,
-  FUJI_GROUPS,
   FUJI_SIZES,
   getFormat,
   isDigital,
@@ -22,7 +21,7 @@ import { formatPrice } from "@/lib/utils";
 /**
  * Print sizes and the digital download, with the selected option's price
  * and the cart button. Prices are for display; the server prices the cart.
- * The main A sizes are buttons; every other Fuji size is in a drop-down.
+ * The A sizes are buttons; the inch sizes on Fuji paper are in a drop-down.
  */
 export function SizePicker({
   productId,
@@ -121,16 +120,10 @@ export function SizePicker({
               <option value="" disabled>
                 Choose another size…
               </option>
-              {FUJI_GROUPS.map((group) => (
-                <optgroup key={group} label={group}>
-                  {FUJI_SIZES.filter((size) => size.group === group).map(
-                    (size) => (
-                      <option key={size.name} value={size.name}>
-                        {size.label} · {formatPrice(size.price)}
-                      </option>
-                    ),
-                  )}
-                </optgroup>
+              {FUJI_SIZES.map((size) => (
+                <option key={size.name} value={size.name}>
+                  {size.label} · {formatPrice(size.price)}
+                </option>
               ))}
             </select>
             <svg
