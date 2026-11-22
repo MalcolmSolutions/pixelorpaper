@@ -1,8 +1,4 @@
-import {
-  FUJI_SIZES,
-  PRINT_SIZES,
-  type PrintSizeName,
-} from "@/lib/print-sizes";
+import { FUJI_SIZES, PRINT_SIZES } from "@/lib/print-sizes";
 
 // Pure rules for print fulfilment through theprintspace, kept apart from the
 // API and database code so they can be unit tested.
@@ -32,18 +28,6 @@ const LIVE_SITE = "https://pixelorpaper.co.uk";
 
 /** Every print is Fuji Crystal Archive Matt (C-type), unframed. */
 export const PAPER_ID = "fuji-matt";
-/**
- * What theprintspace charges us for one unframed Fuji Crystal Archive Matt
- * print, in pence incl. VAT, before delivery: their published dropship price
- * (lab price + 20%), checked 19 October 2026. A guide for setting prices
- * only; the cost check uses each order's live quote.
- */
-export const FUJI_PRINT_COST: Record<PrintSizeName, number> = {
-  A5: 662,
-  A4: 1162,
-  A3: 1436,
-  A2: 2874,
-};
 
 /**
  * No added border. theprintspace fits the whole image to the paper without
@@ -68,16 +52,12 @@ export type VariantSpec = {
  * set on each PUT): every size we sell, turned to the image's orientation,
  * priced at what we charge.
  */
-export function variantSpecs(
-  image: { width: number; height: number },
-  prices: Record<PrintSizeName, number>,
-): VariantSpec[] {
+export function variantSpecs(image: {
+  width: number;
+  height: number;
+}): VariantSpec[] {
   const landscape = image.width > image.height;
-  const sizes = [
-    ...PRINT_SIZES.map((size) => ({ ...size, price: prices[size.name] })),
-    ...FUJI_SIZES,
-  ];
-  return sizes.map((size) => ({
+  return [...PRINT_SIZES, ...FUJI_SIZES].map((size) => ({
     size_label: size.name,
     print_width_mm: landscape ? size.heightMm : size.widthMm,
     print_height_mm: landscape ? size.widthMm : size.heightMm,

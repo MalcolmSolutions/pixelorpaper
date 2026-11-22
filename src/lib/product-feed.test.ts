@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { PRINT_SIZES, standardPrices } from "@/lib/print-sizes";
+import { PRINT_SIZES } from "@/lib/print-sizes";
 import { feedId, feedPrice, productFeedXml } from "@/lib/product-feed";
 import type { Category } from "@/types/category";
 import type { Product } from "@/types/product";
@@ -20,7 +20,6 @@ const product: Product = {
   orientation: "landscape",
   keywords: [],
   available: true,
-  prices: standardPrices(),
 };
 const category: Category = {
   slug: "landscapes",
@@ -50,7 +49,7 @@ describe("productFeedXml", () => {
       a3,
       /<link>https:\/\/pixelorpaper\.co\.uk\/products\/misty-hills\?size=A3<\/link>/,
     );
-    assert.match(a3, /<g:price>18\.99 GBP<\/g:price>/);
+    assert.match(a3, /<g:price>21\.99 GBP<\/g:price>/);
     assert.match(a3, /<g:product_type>Photographic Prints &gt; Landscapes</);
   });
 

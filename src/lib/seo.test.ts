@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { standardPrices } from "@/lib/print-sizes";
 import {
   jsonLdScript,
   matchOldProductId,
@@ -25,7 +24,6 @@ const product: Product = {
   orientation: "landscape",
   keywords: [],
   available: true,
-  prices: standardPrices(),
 };
 const category: Category = {
   slug: "landscapes",
@@ -51,14 +49,14 @@ describe("metaDescription", () => {
 });
 
 describe("productJsonLd", () => {
-  it("marks up the default A4 price, stock, free UK delivery and breadcrumbs", () => {
+  it("marks up the default A4 price, stock, UK delivery and breadcrumbs", () => {
     const [item, crumbs] = asJson(productJsonLd(product, category));
     assert.equal(item["@type"], "Product");
     assert.equal(item.url, "https://pixelorpaper.co.uk/products/misty-hills");
-    assert.equal(item.offers.price, "12.99");
+    assert.equal(item.offers.price, "17.99");
     assert.equal(item.offers.priceCurrency, "GBP");
     assert.equal(item.offers.availability, "https://schema.org/InStock");
-    assert.equal(item.offers.shippingDetails.shippingRate.value, "0");
+    assert.equal(item.offers.shippingDetails.shippingRate.value, "7.74");
     assert.equal(
       item.offers.shippingDetails.deliveryTime.transitTime.maxValue,
       3,

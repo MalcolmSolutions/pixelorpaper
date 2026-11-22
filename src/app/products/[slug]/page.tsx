@@ -125,7 +125,6 @@ export default async function ProductPage(
           {product.available ? (
             <SizePicker
               productId={product.id}
-              prices={product.prices}
               image={product.image}
               initialSize={getFormat(one(size) ?? "")}
             />

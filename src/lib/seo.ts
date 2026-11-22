@@ -1,4 +1,4 @@
-import { PRINT_SIZES } from "@/lib/print-sizes";
+import { DELIVERY_PRICE, PRINT_SIZES } from "@/lib/print-sizes";
 import { site } from "@/lib/site";
 import type { Category } from "@/types/category";
 import type { Product } from "@/types/product";
@@ -63,7 +63,7 @@ export function productJsonLd(product: Product, category?: Category) {
         "@type": "Offer",
         url,
         name: `${DEFAULT_SIZE.name} print`,
-        price: pounds(product.prices[DEFAULT_SIZE.name]),
+        price: pounds(DEFAULT_SIZE.price),
         priceCurrency: "GBP",
         availability: product.available
           ? "https://schema.org/InStock"
@@ -73,7 +73,7 @@ export function productJsonLd(product: Product, category?: Category) {
           "@type": "OfferShippingDetails",
           shippingRate: {
             "@type": "MonetaryAmount",
-            value: "0",
+            value: pounds(DELIVERY_PRICE),
             currency: "GBP",
           },
           shippingDestination: {

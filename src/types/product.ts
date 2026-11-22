@@ -1,5 +1,3 @@
-import type { PrintSizeName } from "@/lib/print-sizes";
-
 /** Keys of the built-in placeholder artworks (see components/artwork.tsx). */
 export type ArtworkKey =
   | "arches"
@@ -35,8 +33,6 @@ export type Product = {
   keywords: string[];
   /** False when an admin has taken the print off sale. */
   available: boolean;
-  /** Price per print size in pence, VAT inclusive. */
-  prices: Record<PrintSizeName, number>;
   /** When the product was last edited (ISO), if known. */
   updatedAt?: string;
 };

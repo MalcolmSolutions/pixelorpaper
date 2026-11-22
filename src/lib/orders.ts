@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import type { Customer } from "@/lib/auth";
 import type { CartLine } from "@/lib/cart";
 import { getDb } from "@/lib/db";
+import { deliveryFor } from "@/lib/print-sizes";
 import type { Order, OrderItem } from "@/types/order";
 
 // All order writes go through this module. Payment state only ever changes
@@ -32,7 +33,7 @@ export async function createPendingOrder(
   const id = crypto.randomUUID();
   const reference = newReference();
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
-  const shipping = 0; // Free UK delivery.
+  const shipping = deliveryFor(lines.map((line) => line.size));
 
   // A batch runs as one transaction: the order and its items or nothing.
   await db.batch([

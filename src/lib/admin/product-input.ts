@@ -1,14 +1,11 @@
 import { readImageSize } from "@/lib/image-size";
 import { previewEdge } from "@/lib/preview-size";
-import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
 
 // Server-side validation of the admin product form. Nothing from the browser
-// is trusted: every field is re-checked here, prices are parsed to integer
-// pence, and images are identified by their bytes, not their name or type.
+// is trusted: every field is re-checked here, and images are identified by
+// their bytes, not their name or type.
 
 export const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
-const MIN_PRICE_PENCE = 100; // £1.00
-const MAX_PRICE_PENCE = 100_000; // £1,000.00
 const MAX_KEYWORDS = 20;
 
 export type ProductFields = {
@@ -17,7 +14,6 @@ export type ProductFields = {
   categorySlug: string;
   location: string | null;
   keywords: string[];
-  prices: Record<PrintSizeName, number>;
 };
 
 export type UploadedImage = {
@@ -29,28 +25,12 @@ export type UploadedImage = {
 };
 
 export type FieldErrors = Partial<
-  Record<
-    | keyof ProductFields
-    | `price_${PrintSizeName}`
-    | "image"
-    | "preview"
-    | "form",
-    string
-  >
+  Record<keyof ProductFields | "image" | "preview" | "form", string>
 >;
 
 function text(formData: FormData, name: string) {
   const value = formData.get(name);
   return typeof value === "string" ? value.trim() : "";
-}
-
-/** "£12.99", "12.99" or "12" → 1299; null if not a valid amount. */
-export function parsePricePence(input: string): number | null {
-  const match = input
-    .replace(/[£,\s]/g, "")
-    .match(/^(\d{1,4})(?:\.(\d{1,2}))?$/);
-  if (!match) return null;
-  return Number(match[1]) * 100 + Number((match[2] ?? "0").padEnd(2, "0"));
 }
 
 export function parseProductFields(
@@ -89,18 +69,6 @@ export function parseProductFields(
     errors.keywords = "Keep each keyword to 40 characters.";
   }
 
-  const prices = {} as Record<PrintSizeName, number>;
-  for (const size of PRINT_SIZES) {
-    const pence = parsePricePence(text(formData, `price_${size.name}`));
-    if (pence === null) {
-      errors[`price_${size.name}`] = "Enter a price like 12.99.";
-    } else if (pence < MIN_PRICE_PENCE || pence > MAX_PRICE_PENCE) {
-      errors[`price_${size.name}`] = "Prices must be between £1 and £1,000.";
-    } else {
-      prices[size.name] = pence;
-    }
-  }
-
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -110,7 +78,6 @@ export function parseProductFields(
       categorySlug,
       location: location || null,
       keywords,
-      prices,
     },
   };
 }

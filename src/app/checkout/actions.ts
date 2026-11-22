@@ -97,8 +97,8 @@ export async function startCheckout(formData: FormData) {
             {
               shipping_rate_data: {
                 type: "fixed_amount",
-                display_name: "Free UK tracked delivery",
-                fixed_amount: { amount: 0, currency: "gbp" },
+                display_name: "UK tracked delivery",
+                fixed_amount: { amount: cart.delivery, currency: "gbp" },
               },
             },
           ],

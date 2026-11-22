@@ -13,8 +13,8 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   await requireAdmin();
   const { slug } = await props.params;
-  const found = await getProductBySlug(slug);
-  return { title: found ? `Edit ${found.row.name}` : "Product not found" };
+  const row = await getProductBySlug(slug);
+  return { title: row ? `Edit ${row.name}` : "Product not found" };
 }
 
 export default async function EditProductPage(
@@ -25,10 +25,10 @@ export default async function EditProductPage(
     props.params,
     props.searchParams,
   ]);
-  const found = await getProductBySlug(slug);
-  if (!found) notFound();
+  const row = await getProductBySlug(slug);
+  if (!row) notFound();
   const categories = await listCategories();
-  const product = toProduct(found.row, found.prices);
+  const product = toProduct(row);
 
   return (
     <>
@@ -85,7 +85,6 @@ export default async function EditProductPage(
           categorySlug: product.category,
           location: product.location ?? "",
           keywords: product.keywords.join(", "),
-          prices: product.prices,
         }}
       />
     </>

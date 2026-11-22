@@ -1,4 +1,4 @@
-import { PRINT_SIZES, type PrintSize } from "@/lib/print-sizes";
+import { DELIVERY_PRICE, PRINT_SIZES, type PrintSize } from "@/lib/print-sizes";
 import { absoluteUrl } from "@/lib/seo";
 import { site } from "@/lib/site";
 import type { Category } from "@/types/category";
@@ -62,7 +62,7 @@ function item(product: Product, size: PrintSize, category?: Category) {
     ["link", sizeLink(product, size)],
     ["g:image_link", product.image.src],
     ["g:availability", "in_stock"],
-    ["g:price", feedPrice(product.prices[size.name])],
+    ["g:price", feedPrice(size.price)],
     ["g:condition", "new"],
     ["g:brand", site.name],
     ["g:identifier_exists", "no"],
@@ -73,7 +73,7 @@ function item(product: Product, size: PrintSize, category?: Category) {
   return [
     "<item>",
     ...fields.map(([tag, value]) => `<${tag}>${xml(value)}</${tag}>`),
-    "<g:shipping><g:country>GB</g:country><g:price>0.00 GBP</g:price></g:shipping>",
+    `<g:shipping><g:country>GB</g:country><g:price>${feedPrice(DELIVERY_PRICE)}</g:price></g:shipping>`,
     "</item>",
   ].join("\n");
 }

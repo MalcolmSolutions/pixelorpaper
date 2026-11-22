@@ -58,6 +58,8 @@ export const products = sqliteTable(
   ],
 );
 
+// No longer read or written: every print is priced per size in
+// lib/print-sizes.ts. Kept so the old per-product prices aren't lost.
 export const productPrices = sqliteTable(
   "product_prices",
   {

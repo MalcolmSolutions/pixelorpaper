@@ -1,5 +1,11 @@
 import { SectionHeading } from "@/components/section-heading";
-import { DIGITAL_DOWNLOAD, PRINT_SIZES } from "@/lib/print-sizes";
+import {
+  DELIVERY_PRICE,
+  DIGITAL_DOWNLOAD,
+  FUJI_SIZES,
+  PRINT_SIZES,
+  vatIn,
+} from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
 const LARGEST = Math.max(...PRINT_SIZES.map((s) => s.widthMm));
@@ -31,11 +37,14 @@ export function PriceList() {
                 {size.name}
               </h3>
               <p className="text-sm tabular-nums">
-                {formatPrice(size.standardPrice)}
+                {formatPrice(size.price)}
               </p>
             </div>
-            <p className="mt-0.5 text-xs text-ink-muted tabular-nums">
-              {size.widthMm / 10} × {size.heightMm / 10} cm
+            <p className="mt-0.5 flex justify-between gap-3 text-xs text-ink-muted tabular-nums">
+              <span>
+                {size.widthMm / 10} × {size.heightMm / 10} cm
+              </span>
+              <span>incl. {formatPrice(vatIn(size.price))} VAT</span>
             </p>
           </li>
         ))}
@@ -51,13 +60,17 @@ export function PriceList() {
           </p>
         </div>
         <p className="text-sm tabular-nums">
-          {formatPrice(DIGITAL_DOWNLOAD.price)}
+          {formatPrice(DIGITAL_DOWNLOAD.price)}{" "}
+          <span className="text-xs text-ink-muted">
+            incl. {formatPrice(vatIn(DIGITAL_DOWNLOAD.price))} VAT
+          </span>
         </p>
       </div>
       <p className="mt-8 text-sm text-ink-muted">
-        Every print is available in all four sizes or as a download. These are
-        our standard prices, including UK VAT; a few prints may be priced
-        differently.
+        Every print is available in these four sizes, {FUJI_SIZES.length} more inch sizes or as
+        a download. All prices include UK VAT at 20%. UK tracked delivery is{" "}
+        {formatPrice(DELIVERY_PRICE)} per order of prints, whatever the size or
+        number; downloads have no delivery charge.
       </p>
     </section>
   );

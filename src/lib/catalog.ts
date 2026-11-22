@@ -4,7 +4,6 @@ import { cache } from "react";
 import { getDrizzle } from "@/db";
 import {
   categories,
-  productPrices,
   products,
   type CategoryRow,
   type ProductRow,
@@ -14,12 +13,11 @@ import {
   readBucketCatalog,
   type Catalog,
 } from "@/lib/catalog-import";
-import { standardPrices } from "@/lib/print-sizes";
 import { publicUrl } from "@/lib/r2";
 import type { Category } from "@/types/category";
 import type { Product } from "@/types/product";
 
-// The shop's catalog, read from D1 (products, product_prices, categories).
+// The shop's catalog, read from D1 (products, categories).
 // Until an admin has imported the bucket into D1, it falls back to reading
 // the bucket directly, so the shop is never empty. Pages should use
 // lib/products.ts and lib/categories.ts rather than importing this module.
@@ -28,11 +26,8 @@ import type { Product } from "@/types/product";
 
 export const CATALOG_TAG = "catalog";
 
-/** Product as the shop sees it, built from its row and prices. */
-export function toProduct(
-  row: ProductRow,
-  prices: Partial<Record<string, number>>,
-): Product {
+/** Product as the shop sees it, built from its row. */
+export function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
     slug: row.slug,
@@ -49,7 +44,6 @@ export function toProduct(
     location: row.location ?? undefined,
     keywords: row.keywords,
     available: row.available,
-    prices: { ...standardPrices(), ...prices },
     updatedAt: row.updatedAt,
   };
 }
@@ -69,27 +63,18 @@ async function readCatalog(): Promise<Catalog> {
   const [{ total }] = await db.select({ total: count() }).from(products);
   if (total === 0) return readBucketCatalog();
 
-  const [productRows, priceRows, categoryRows] = await Promise.all([
+  const [productRows, categoryRows] = await Promise.all([
     db
       .select()
       .from(products)
       .orderBy(asc(products.sortOrder), asc(products.name)),
-    db.select().from(productPrices),
     db
       .select()
       .from(categories)
       .orderBy(asc(categories.sortOrder), asc(categories.name)),
   ]);
 
-  const pricesByProduct = new Map<string, Record<string, number>>();
-  for (const p of priceRows) {
-    const prices = pricesByProduct.get(p.productId) ?? {};
-    prices[p.size] = p.pricePence;
-    pricesByProduct.set(p.productId, prices);
-  }
-  const shopProducts = productRows.map((row) =>
-    toProduct(row, pricesByProduct.get(row.id) ?? {}),
-  );
+  const shopProducts = productRows.map((row) => toProduct(row));
 
   const availableCounts = new Map<string, number>();
   for (const p of shopProducts) {

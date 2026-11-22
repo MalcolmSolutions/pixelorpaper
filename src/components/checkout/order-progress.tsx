@@ -66,12 +66,12 @@ function stepsFor(order: Order, hasPrints: boolean): Step[] {
   const delivery: Step = fulfilled
     ? {
         title: "Delivery",
-        detail: "Sent with free UK tracked delivery",
+        detail: "Sent with UK tracked delivery",
         state: "done",
       }
     : {
         title: "Delivery",
-        detail: "Free UK tracked delivery",
+        detail: "UK tracked delivery",
         state: "upcoming",
       };
 

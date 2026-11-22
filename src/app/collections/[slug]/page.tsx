@@ -24,7 +24,7 @@ export async function generateMetadata(
   return {
     title: `${category.name} Photographic Prints`,
     description: metaDescription(
-      `${category.description ? `${category.description} ` : ""}${category.count} ${category.name.toLowerCase()} photographic prints, printed to order in A5 to A2 or as digital downloads. Free UK delivery.`,
+      `${category.description ? `${category.description} ` : ""}${category.count} ${category.name.toLowerCase()} photographic prints, printed to order in A5 to A2 or as digital downloads. UK tracked delivery.`,
     ),
     alternates: { canonical: path },
     openGraph: {

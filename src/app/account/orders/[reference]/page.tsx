@@ -176,8 +176,7 @@ function orderState(
     case "fulfilled":
       return {
         label: "Sent",
-        description:
-          "Your prints have been sent with free UK tracked delivery.",
+        description: "Your prints have been sent with UK tracked delivery.",
         inProgress: true,
       };
     default:

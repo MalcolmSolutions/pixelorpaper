@@ -1,5 +1,4 @@
 import { readImageSize } from "@/lib/image-size";
-import { standardPrices } from "@/lib/print-sizes";
 import { getObject, listObjectKeys, publicUrl } from "@/lib/r2";
 import type { Category } from "@/types/category";
 import type { Orientation, Product } from "@/types/product";
@@ -249,7 +248,6 @@ export async function readBucketCatalog(): Promise<Catalog> {
             : undefined,
         keywords: meta?.keywords ?? [],
         available: true,
-        prices: standardPrices(),
       };
     },
   );

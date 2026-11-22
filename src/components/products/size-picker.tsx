@@ -11,10 +11,9 @@ import {
   getFormat,
   isDigital,
   isFujiSize,
-  priceOf,
   PRINT_SIZES,
+  vatIn,
   type Format,
-  type PrintSizeName,
 } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
@@ -25,12 +24,10 @@ import { formatPrice } from "@/lib/utils";
  */
 export function SizePicker({
   productId,
-  prices,
   image,
   initialSize = PRINT_SIZES[1],
 }: {
   productId: string;
-  prices: Record<PrintSizeName, number>;
   /** Full-resolution size of the original, as sold in the download. */
   image: { width: number; height: number };
   /** Selected at first: A4, or the size a link asked for (?size=A3). */
@@ -47,8 +44,10 @@ export function SizePicker({
       <input type="hidden" name="size" value={selected.name} />
 
       <p className="text-lg tabular-nums">
-        {formatPrice(priceOf(prices, selected))}{" "}
-        <span className="text-sm text-ink-muted">incl. VAT</span>
+        {formatPrice(selected.price)}{" "}
+        <span className="text-sm text-ink-muted">
+          incl. {formatPrice(vatIn(selected.price))} VAT
+        </span>
       </p>
 
       <div className="space-y-3">
@@ -88,7 +87,7 @@ export function SizePicker({
             >
               <span className="font-medium">{size.name}</span>
               <span className="text-xs tabular-nums">
-                {formatPrice(prices[size.name])}
+                {formatPrice(size.price)}
               </span>
             </button>
           ))}

@@ -1,5 +1,10 @@
 import { cookies } from "next/headers";
-import { getFormat, isDigital, priceOf, type Format } from "@/lib/print-sizes";
+import {
+  deliveryFor,
+  getFormat,
+  isDigital,
+  type Format,
+} from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 import type { Product } from "@/types/product";
 
@@ -27,6 +32,10 @@ export type Cart = {
   lines: CartLine[];
   /** Pence, VAT inclusive. */
   subtotal: number;
+  /** Delivery, pence incl. VAT; 0 for downloads only. */
+  delivery: number;
+  /** Subtotal plus delivery. */
+  total: number;
   itemCount: number;
   /** Lines dropped because the print or size is no longer available. */
   removedCount: number;
@@ -116,7 +125,7 @@ export async function getCart(): Promise<Cart> {
       const product = size && (await getProductById(entry.productId));
       if (!size || !product?.available) return undefined;
       // Priced on the server from current data; one download is all anyone needs.
-      const unitPrice = priceOf(product.prices, size);
+      const unitPrice = size.price;
       const quantity = isDigital(size) ? 1 : entry.quantity;
       return {
         product,
@@ -129,9 +138,13 @@ export async function getCart(): Promise<Cart> {
   );
 
   const lines = resolved.filter((line) => line !== undefined);
+  const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  const delivery = deliveryFor(lines.map((line) => line.size));
   return {
     lines,
-    subtotal: lines.reduce((sum, line) => sum + line.lineTotal, 0),
+    subtotal,
+    delivery,
+    total: subtotal + delivery,
     itemCount: lines.reduce((sum, line) => sum + line.quantity, 0),
     removedCount: entries.length - lines.length,
   };

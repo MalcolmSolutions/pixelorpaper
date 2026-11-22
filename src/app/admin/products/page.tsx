@@ -15,12 +15,10 @@ import {
   type AvailabilityFilter,
 } from "@/lib/admin/catalog";
 import { toProduct } from "@/lib/catalog";
-import { PRINT_SIZES } from "@/lib/print-sizes";
-import { formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Products" };
 
-const COLUMNS = "md:grid-cols-[6rem_minmax(0,1fr)_9rem_10rem_11rem_3rem]";
+const COLUMNS = "md:grid-cols-[6rem_minmax(0,1fr)_9rem_11rem_3rem]";
 
 const SALE_FILTERS: { value: AvailabilityFilter; label: string }[] = [
   { value: "", label: "All" },
@@ -42,15 +40,14 @@ export default async function AdminProductsPage(
       <>
         <AdminPageHeader
           title="Products"
-          description="Add and edit prints, their category and their prices."
+          description="Add and edit prints and their category."
         />
         <div className="max-w-prose space-y-4 border border-dashed p-8">
           <h2 className="text-h3">Import your prints</h2>
           <p className="text-sm text-ink-muted">
             The catalog isn&rsquo;t in the database yet, so the shop is still
             reading prints straight from the image bucket. Import them to manage
-            them here. Prices start at the standard price for each size, and
-            nothing in the bucket is changed.
+            them here. Nothing in the bucket is changed.
           </p>
           <ImportButton primary />
         </div>
@@ -92,7 +89,7 @@ export default async function AdminProductsPage(
     <>
       <AdminPageHeader
         title="Products"
-        description="Add and edit prints, their category and their prices."
+        description="Add and edit prints and their category."
         actions={
           <Link href="/admin/products/new" className="btn btn-primary btn-sm">
             New product
@@ -191,23 +188,18 @@ export default async function AdminProductsPage(
             <span />
             <span>Product</span>
             <span>Category</span>
-            <span>Prices</span>
             <span>Sale</span>
             <span />
           </div>
           <ul className="divide-y border-b">
-            {rows.map(({ row, prices }) => {
-              const product = toProduct(row, prices);
-              const amounts = PRINT_SIZES.map((s) => product.prices[s.name]);
-              const custom = PRINT_SIZES.some(
-                (s) => product.prices[s.name] !== s.standardPrice,
-              );
+            {rows.map((row) => {
+              const product = toProduct(row);
               return (
                 <li
                   key={row.id}
                   className={`grid grid-cols-[5rem_1fr] items-center gap-x-4 gap-y-1 py-4 md:gap-x-6 ${COLUMNS}`}
                 >
-                  <div className="row-span-5 self-start md:row-span-1 md:self-center">
+                  <div className="row-span-4 self-start md:row-span-1 md:self-center">
                     <PrintThumbnail product={product} />
                   </div>
                   <div className="min-w-0">
@@ -224,16 +216,6 @@ export default async function AdminProductsPage(
                   <p className="text-sm">
                     <span className="sr-only">Category: </span>
                     {categoryName.get(row.categorySlug) ?? row.categorySlug}
-                  </p>
-                  <p className="text-sm tabular-nums">
-                    <span className="sr-only">Prices: </span>
-                    {formatPrice(Math.min(...amounts))} –{" "}
-                    {formatPrice(Math.max(...amounts))}
-                    {custom && (
-                      <span className="ml-2 text-xs text-ink-muted">
-                        Custom
-                      </span>
-                    )}
                   </p>
                   <AvailabilitySwitch
                     slug={row.slug}

@@ -9,8 +9,7 @@ import {
 } from "@/app/admin/products/actions";
 import { Field, inputClass } from "@/components/admin/field";
 import { makePreview } from "@/components/admin/make-preview";
-import { PRINT_SIZES, type PrintSizeName } from "@/lib/print-sizes";
-import { FUJI_PRINT_COST } from "@/lib/printspace/rules";
+import { PRINT_SIZES } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
 export type ProductFormValues = {
@@ -19,10 +18,7 @@ export type ProductFormValues = {
   categorySlug: string;
   location: string;
   keywords: string;
-  prices: Record<PrintSizeName, number>;
 };
-
-const pounds = (pence: number) => (pence / 100).toFixed(2);
 
 /**
  * Create or edit form for a product. Values are checked again on the
@@ -232,44 +228,19 @@ export function ProductForm({
           )}
         />
 
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">Prices (incl. VAT)</legend>
-          <p className="text-xs text-ink-muted">
-            Fuji is what theprintspace charges for the print on Fuji Crystal
-            Archive Matt, incl. VAT, before delivery.
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Prices (incl. VAT)</p>
+          <p className="text-sm tabular-nums">
+            {PRINT_SIZES.map(
+              (size) => `${size.name} ${formatPrice(size.price)}`,
+            ).join(" · ")}
           </p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {PRINT_SIZES.map((size) => (
-              <Field
-                key={size.name}
-                label={size.name}
-                name={`price_${size.name}`}
-                hint={`Standard ${formatPrice(size.standardPrice)} · Fuji ${formatPrice(FUJI_PRINT_COST[size.name])}`}
-                error={errors[`price_${size.name}`]}
-                render={(props) => (
-                  <div className="relative">
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-ink-muted"
-                    >
-                      £
-                    </span>
-                    <input
-                      {...props}
-                      inputMode="decimal"
-                      defaultValue={value(
-                        `price_${size.name}`,
-                        pounds(values.prices[size.name]),
-                      )}
-                      required
-                      className={`${inputClass} pl-8 tabular-nums`}
-                    />
-                  </div>
-                )}
-              />
-            ))}
-          </div>
-        </fieldset>
+          <p className="text-xs text-ink-muted">
+            The same for every print: theprintspace&rsquo;s dropship price
+            excl. VAT plus 50%, plus VAT, rounded up to the next £x.99. The
+            other sizes are priced the same way.
+          </p>
+        </div>
 
         <div className="flex flex-wrap items-center gap-4 border-t pt-6">
           <button

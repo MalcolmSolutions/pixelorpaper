@@ -12,7 +12,7 @@ import { collectionPath, OPEN_GRAPH } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "All Photographic Prints",
   description:
-    "Browse every photographic print: landscapes, cities, architecture, nature and more, printed to order in A5 to A2 with free UK delivery.",
+    "Browse every photographic print: landscapes, cities, architecture, nature and more, printed to order in A5 to A2 with UK tracked delivery.",
   // Sort and "Show more" pages are variations of this one listing.
   alternates: { canonical: "/products" },
   openGraph: { ...OPEN_GRAPH, url: "/products" },

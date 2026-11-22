@@ -7,7 +7,7 @@ import { OPEN_GRAPH, SITE_ORIGIN } from "@/lib/seo";
 import "./globals.css";
 
 const DESCRIPTION =
-  "Photographic prints of landscapes, cities, architecture and nature, printed to order in A5 to A2 or sold as digital downloads. Free UK delivery.";
+  "Photographic prints of landscapes, cities, architecture and nature, printed to order in A5 to A2 or sold as digital downloads. UK tracked delivery.";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",

@@ -42,10 +42,6 @@ const TEXT_FIELDS = [
   "category",
   "location",
   "keywords",
-  "price_A5",
-  "price_A4",
-  "price_A3",
-  "price_A2",
 ];
 
 function submitted(formData: FormData) {
@@ -60,7 +56,7 @@ function submitted(formData: FormData) {
 /**
  * Creates a product: validates the form, the original image and the preview
  * the admin's browser made from it, uploads both to R2, then saves the
- * product and its prices.
+ * product.
  */
 export async function createProduct(
   _previous: ProductFormState,
@@ -142,7 +138,7 @@ export async function createProduct(
   redirect(`/admin/products/${slug}?created=1`);
 }
 
-/** Updates a product's details, category and prices. */
+/** Updates a product's details and category. */
 export async function updateProduct(
   _previous: ProductFormState,
   formData: FormData,
@@ -176,7 +172,7 @@ export async function updateProduct(
     };
   }
 
-  await saveProduct(existing.row.id, parsed.fields);
+  await saveProduct(existing.id, parsed.fields);
   updateTag(CATALOG_TAG);
   return { status: "saved", message: "Changes saved." };
 }

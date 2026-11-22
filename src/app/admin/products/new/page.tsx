@@ -5,7 +5,6 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ProductForm } from "@/components/admin/product-form";
 import { requireAdmin } from "@/lib/admin";
 import { countProducts, listCategories } from "@/lib/admin/catalog";
-import { standardPrices } from "@/lib/print-sizes";
 
 export const metadata: Metadata = { title: "New product" };
 
@@ -23,7 +22,7 @@ export default async function NewProductPage() {
       <div className="mt-6">
         <AdminPageHeader
           title="New product"
-          description="Upload the print and set its details and prices. It goes on sale as soon as it's created."
+          description="Upload the print and set its details. It goes on sale as soon as it's created."
         />
       </div>
       <ProductForm
@@ -35,7 +34,6 @@ export default async function NewProductPage() {
           categorySlug: "",
           location: "",
           keywords: "",
-          prices: standardPrices(),
         }}
       />
     </>

@@ -185,9 +185,9 @@ function statusMessage(order: Order, items: OrderItem[]): StatusMessage {
     title: "Order confirmed",
     body: `Thank you. ${
       hasPrints && hasDownloads
-        ? `${ready}, and your prints are made to order and will be sent with free UK tracked delivery.`
+        ? `${ready}, and your prints are made to order and will be sent with UK tracked delivery.`
         : hasPrints
-          ? "Your prints are made to order and will be sent with free UK tracked delivery."
+          ? "Your prints are made to order and will be sent with UK tracked delivery."
           : `${ready}.`
     }${hasDownloads && signIn ? signIn : email}`,
     action: { href: "/products", label: "Continue shopping" },

@@ -1,8 +1,7 @@
 import { and, asc, count, eq, like, min, or, type SQL } from "drizzle-orm";
 import { getDrizzle } from "@/db";
-import { categories, productPrices, products } from "@/db/schema";
+import { categories, products } from "@/db/schema";
 import { readBucketCatalog, slugify } from "@/lib/catalog-import";
-import { PRINT_SIZES } from "@/lib/print-sizes";
 import type { ProductFields, UploadedImage } from "@/lib/admin/product-input";
 
 // Admin reads and writes for the catalog. Callers (admin pages and server
@@ -34,7 +33,7 @@ export async function categoryExists(slug: string) {
   return Boolean(row);
 }
 
-/** A page of products matching a name search and category, with prices. */
+/** A page of products matching a name search and category. */
 export type AvailabilityFilter = "" | "available" | "unavailable";
 
 export async function listProducts({
@@ -73,24 +72,7 @@ export async function listProducts({
     .orderBy(asc(products.sortOrder), asc(products.name))
     .limit(ADMIN_PAGE_SIZE)
     .offset((page - 1) * ADMIN_PAGE_SIZE);
-  const prices = rows.length
-    ? await db
-        .select()
-        .from(productPrices)
-        .where(or(...rows.map((r) => eq(productPrices.productId, r.id))))
-    : [];
-
-  return {
-    total,
-    rows: rows.map((row) => ({
-      row,
-      prices: Object.fromEntries(
-        prices
-          .filter((p) => p.productId === row.id)
-          .map((p) => [p.size, p.pricePence]),
-      ),
-    })),
-  };
+  return { total, rows };
 }
 
 /** How many products are on sale and off sale, optionally in a category. */
@@ -124,15 +106,7 @@ export async function setProductAvailability(slug: string, available: boolean) {
 export async function getProductBySlug(slug: string) {
   const db = await getDrizzle();
   const [row] = await db.select().from(products).where(eq(products.slug, slug));
-  if (!row) return null;
-  const prices = await db
-    .select()
-    .from(productPrices)
-    .where(eq(productPrices.productId, row.id));
-  return {
-    row,
-    prices: Object.fromEntries(prices.map((p) => [p.size, p.pricePence])),
-  };
+  return row ?? null;
 }
 
 /** A URL slug for a new product, unique among existing ones. */
@@ -152,13 +126,6 @@ async function uniqueSlug(name: string) {
   return slug;
 }
 
-const priceRows = (productId: string, prices: ProductFields["prices"]) =>
-  PRINT_SIZES.map((size) => ({
-    productId,
-    size: size.name,
-    pricePence: prices[size.name],
-  }));
-
 /** Inserts a product whose image is already uploaded to `imageKey`. */
 export async function insertProduct(
   fields: ProductFields,
@@ -172,49 +139,35 @@ export async function insertProduct(
     .select({ first: min(products.sortOrder) })
     .from(products);
 
-  await db.batch([
-    db.insert(products).values({
-      id: imageKey,
-      slug,
-      name: fields.name,
-      description: fields.description,
-      categorySlug: fields.categorySlug,
-      imageKey,
-      imageWidth: image.width,
-      imageHeight: image.height,
-      location: fields.location,
-      keywords: fields.keywords,
-      sortOrder: (first ?? 0) - 1,
-    }),
-    db.insert(productPrices).values(priceRows(imageKey, fields.prices)),
-  ]);
+  await db.insert(products).values({
+    id: imageKey,
+    slug,
+    name: fields.name,
+    description: fields.description,
+    categorySlug: fields.categorySlug,
+    imageKey,
+    imageWidth: image.width,
+    imageHeight: image.height,
+    location: fields.location,
+    keywords: fields.keywords,
+    sortOrder: (first ?? 0) - 1,
+  });
   return slug;
 }
 
-/** Updates a product's details, category and prices in one transaction. */
+/** Updates a product's details and category. */
 export async function updateProduct(id: string, fields: ProductFields) {
   const db = await getDrizzle();
-  await db.batch([
-    db
-      .update(products)
-      .set({
-        name: fields.name,
-        description: fields.description,
-        categorySlug: fields.categorySlug,
-        location: fields.location,
-        keywords: fields.keywords,
-      })
-      .where(eq(products.id, id)),
-    ...priceRows(id, fields.prices).map((price) =>
-      db
-        .insert(productPrices)
-        .values(price)
-        .onConflictDoUpdate({
-          target: [productPrices.productId, productPrices.size],
-          set: { pricePence: price.pricePence },
-        }),
-    ),
-  ]);
+  await db
+    .update(products)
+    .set({
+      name: fields.name,
+      description: fields.description,
+      categorySlug: fields.categorySlug,
+      location: fields.location,
+      keywords: fields.keywords,
+    })
+    .where(eq(products.id, id));
 }
 
 /**
@@ -238,7 +191,7 @@ export async function importFromBucket() {
       })
       .onConflictDoNothing(),
   );
-  const productInserts = bucket.products.flatMap((p, i) => [
+  const productInserts = bucket.products.map((p, i) =>
     db
       .insert(products)
       .values({
@@ -255,17 +208,7 @@ export async function importFromBucket() {
         sortOrder: i,
       })
       .onConflictDoNothing(),
-    ...PRINT_SIZES.map((size) =>
-      db
-        .insert(productPrices)
-        .values({
-          productId: p.id,
-          size: size.name,
-          pricePence: p.prices[size.name],
-        })
-        .onConflictDoNothing(),
-    ),
-  ]);
+  );
 
   // Categories first (products reference them), then products in chunks so
   // no single D1 batch gets too large. Each chunk is one transaction.

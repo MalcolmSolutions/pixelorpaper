@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  DELIVERY_PRICE,
+  deliveryFor,
   DIGITAL_DOWNLOAD,
   describeFormat,
   formatLabel,
   FUJI_SIZES,
   getFormat,
   isDigital,
-  priceOf,
   PRINT_SIZES,
+  priceFromCost,
   sizeLabel,
-  standardPrices,
+  vatIn,
 } from "@/lib/print-sizes";
 
 describe("formats", () => {
@@ -32,12 +34,32 @@ describe("formats", () => {
     }
   });
 
-  it("prices Fuji sizes at half again theprintspace's cost, ending .99", () => {
-    // 8 × 10 in: lab £8.35, dropship £10.02, × 1.5 = £15.03.
-    assert.equal(priceOf(standardPrices(), getFormat("8x10in")!), 1599);
-    // 4 × 6 in: lab £3.71, dropship £4.45, × 1.5 = £6.68.
-    assert.equal(priceOf(standardPrices(), getFormat("4x6in")!), 699);
-    for (const size of FUJI_SIZES) assert.equal(size.price % 100, 99, size.name);
+  it("prices at theprintspace's cost excl. VAT + 50%, plus VAT, rounded up to .99", () => {
+    // A4: dropship £9.684 excl. VAT, + 50% = £14.526, + VAT = £17.43.
+    assert.equal(getFormat("A4")?.price, 1799);
+    // 8 × 10 in: £8.352 → £12.528 → £15.03.
+    assert.equal(getFormat("8x10in")?.price, 1599);
+    assert.deepEqual(
+      PRINT_SIZES.map((s) => s.price),
+      [999, 1799, 2199, 4399],
+    );
+    for (const size of [...PRINT_SIZES, ...FUJI_SIZES]) {
+      assert.equal(size.price % 100, 99, size.name);
+      assert.ok(size.price >= size.cost * 1.5 * 1.2, size.name);
+    }
+  });
+
+  it("rounds up, never down, to the next .99", () => {
+    // £16.99 exactly stays; a penny over goes to the next pound.
+    assert.equal(priceFromCost(1699 / 1.8), 1699);
+    assert.equal(priceFromCost(1700 / 1.8), 1799);
+    assert.equal(priceFromCost(1698.5 / 1.8), 1699);
+  });
+
+  it("works out the VAT included in a price", () => {
+    assert.equal(vatIn(1799), 300);
+    assert.equal(vatIn(500), 83);
+    assert.equal(vatIn(999), 167);
   });
 
   it("labels sizes for customers", () => {
@@ -47,10 +69,19 @@ describe("formats", () => {
     assert.equal(sizeLabel("gone"), "gone");
   });
 
-  it("prices the download at £5 regardless of the print's prices", () => {
-    const prices = { ...standardPrices(), A4: 1500 };
-    assert.equal(priceOf(prices, DIGITAL_DOWNLOAD), 500);
-    assert.equal(priceOf(prices, getFormat("A4")!), 1500);
+  it("charges one flat delivery for prints, none for downloads only", () => {
+    // theprintspace's £6.45 excl. VAT, + 20% VAT.
+    assert.equal(DELIVERY_PRICE, 774);
+    const a4 = getFormat("A4")!;
+    const big = getFormat("50x75in")!;
+    assert.equal(deliveryFor([a4]), 774);
+    assert.equal(deliveryFor([a4, big, DIGITAL_DOWNLOAD]), 774);
+    assert.equal(deliveryFor([DIGITAL_DOWNLOAD]), 0);
+    assert.equal(deliveryFor([]), 0);
+  });
+
+  it("prices the download at £5", () => {
+    assert.equal(DIGITAL_DOWNLOAD.price, 500);
     assert.equal(isDigital(DIGITAL_DOWNLOAD), true);
     assert.equal(isDigital(getFormat("A5")!), false);
   });

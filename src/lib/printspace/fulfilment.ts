@@ -4,7 +4,6 @@ import {
   getFormat,
   isDigital,
   PRINT_SIZES,
-  type PrintSizeName,
 } from "@/lib/print-sizes";
 import {
   addDropProduct,
@@ -310,11 +309,14 @@ async function work(
 
   const quote = await quoteOrder(items, delivery.delivery_country_code);
   const cost = penceFromPounds(quote.total_incl_vat);
-  const revenue = prints.reduce((sum, line) => sum + line.line_total_pence, 0);
+  // The quote includes delivery, so count what the customer paid for it too.
+  const revenue =
+    prints.reduce((sum, line) => sum + line.line_total_pence, 0) +
+    order.shipping_pence;
   if (!override && !passesCostCheck(cost, revenue)) {
     return {
       status: "held",
-      hold_reason: `theprintspace would charge £${(cost / 100).toFixed(2)}, more than the £${(revenue / 100).toFixed(2)} the customer paid for the prints.`,
+      hold_reason: `theprintspace would charge £${(cost / 100).toFixed(2)}, more than the £${(revenue / 100).toFixed(2)} the customer paid for the prints and delivery.`,
       last_error: null,
       quoted_cost_pence: cost,
     };
@@ -389,17 +391,10 @@ async function ensureVariants(
     : await findUpload(product.image_key);
   if (!upload) return null;
 
-  const { results: priceRows } = await db
-    .prepare("SELECT size, price_pence FROM product_prices WHERE product_id = ?")
-    .bind(productId)
-    .all<{ size: PrintSizeName; price_pence: number }>();
-  const prices = Object.fromEntries(
-    priceRows.map((row) => [row.size, row.price_pence]),
-  ) as Record<PrintSizeName, number>;
-  const specs = variantSpecs(
-    { width: product.image_width, height: product.image_height },
-    prices,
-  );
+  const specs = variantSpecs({
+    width: product.image_width,
+    height: product.image_height,
+  });
 
   const dropId = await storeDropId();
   const chProduct = existing
