@@ -229,16 +229,17 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Prices (incl. VAT)</p>
+          <p className="text-sm font-medium">Prices</p>
           <p className="text-sm tabular-nums">
             {PRINT_SIZES.map(
               (size) => `${size.name} ${formatPrice(size.price)}`,
             ).join(" · ")}
           </p>
           <p className="text-xs text-ink-muted">
-            The same for every print: theprintspace&rsquo;s dropship price
-            excl. VAT plus 50%, plus VAT, rounded up to the next £x.99. The
-            other sizes are priced the same way.
+            The same for every print: what theprintspace charges for the
+            print, plus the £5 image fee, plus 30% profit, rounded up to the
+            next £x.99. The inch sizes are priced the same way, and delivery
+            is charged once per order.
           </p>
         </div>
 

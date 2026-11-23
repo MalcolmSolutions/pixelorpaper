@@ -4,7 +4,7 @@ import {
   downloadState,
   isDownloadItem,
 } from "@/lib/download-rules";
-import { DIGITAL_DOWNLOAD, sizeLabel, vatIn } from "@/lib/print-sizes";
+import { DIGITAL_DOWNLOAD, sizeLabel } from "@/lib/print-sizes";
 import { getProductById } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
 import type { Order, OrderItem, PaymentStatus } from "@/types/order";
@@ -119,10 +119,6 @@ export async function OrderItems({
         <div className="flex justify-between text-base">
           <dt>Total</dt>
           <dd className="tabular-nums">{formatPrice(order.total_pence)}</dd>
-        </div>
-        <div className="flex justify-between text-ink-muted">
-          <dt>Includes VAT at 20%</dt>
-          <dd className="tabular-nums">{formatPrice(vatIn(order.total_pence))}</dd>
         </div>
       </dl>
     </section>

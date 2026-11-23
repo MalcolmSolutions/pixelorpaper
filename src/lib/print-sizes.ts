@@ -1,41 +1,41 @@
 export type PrintSizeName = "A5" | "A4" | "A3" | "A2";
 
-/** VAT rate on everything we sell (UK standard rate). */
-export const VAT_RATE = 0.2;
+// Pricing. The shop adds nothing on top of what customers see here.
+// Every amount from theprintspace below is what they actually bill us
+// (their price list, checked 26 October 2026), in pence.
+
+/** Our fee for the image itself: the download price, and part of every print. */
+export const IMAGE_FEE = 500;
+
+/** Profit added on top of a print's cost and the image fee. */
+export const PROFIT_RATE = 0.3;
 
 /**
- * Our price from theprintspace's dropship cost for a Fuji Crystal Archive
- * print (pence, excl. VAT): half as much again, plus VAT, rounded up to the
- * next £x.99.
+ * A print's price from what theprintspace bills for it: their print cost
+ * plus the image fee, plus 30% profit, rounded up to the next £x.99.
+ * Delivery is charged separately, once per order.
  */
-export function priceFromCost(dropshipExVat: number) {
+export function priceFromCost(printCost: number) {
   // To a hundredth of a penny first, so float error can't push it up a pound.
-  const pence = Math.round(dropshipExVat * 1.5 * (1 + VAT_RATE) * 100) / 100;
+  const pence =
+    Math.round((printCost + IMAGE_FEE) * (1 + PROFIT_RATE) * 100) / 100;
   return Math.ceil((pence + 1) / 100) * 100 - 1;
 }
 
 /**
- * UK delivery, charged once per order with prints: theprintspace's flat
- * dropship rate for unframed prints of any size (£6.45 excl. VAT, checked
- * 26 October 2026), plus VAT. Pence.
+ * UK delivery, charged once per order with prints, at what theprintspace
+ * bills for dropshipping unframed prints of any size. Pence.
  */
-export const DELIVERY_PRICE = Math.round(645 * (1 + VAT_RATE));
-
-/** The VAT included in a VAT-inclusive price, in pence. */
-export const vatIn = (pence: number) =>
-  Math.round((pence * VAT_RATE) / (1 + VAT_RATE));
+export const DELIVERY_PRICE = 774;
 
 export type PrintSize = {
   name: PrintSizeName;
   /** Paper size in millimetres, portrait. */
   widthMm: number;
   heightMm: number;
-  /**
-   * theprintspace's dropship price for the print, in pence excl. VAT, from
-   * their price list (checked 26 October 2026).
-   */
+  /** What theprintspace bills for the print, in pence. */
   cost: number;
-  /** Pence, VAT inclusive; the same for every print. */
+  /** Our price in pence; the same for every print. */
   price: number;
 };
 
@@ -47,10 +47,10 @@ const aSize = (
 ): PrintSize => ({ name, widthMm, heightMm, cost, price: priceFromCost(cost) });
 
 export const PRINT_SIZES: PrintSize[] = [
-  aSize("A5", 148, 210, 552),
-  aSize("A4", 210, 297, 968.4),
-  aSize("A3", 297, 420, 1196.4),
-  aSize("A2", 420, 594, 2395.2),
+  aSize("A5", 148, 210, 662.4),
+  aSize("A4", 210, 297, 1162.08),
+  aSize("A3", 297, 420, 1435.68),
+  aSize("A2", 420, 594, 2874.24),
 ];
 
 export function getPrintSize(name: string): PrintSize | undefined {
@@ -69,9 +69,9 @@ export type FujiSize = {
   /** Paper size in millimetres, portrait. */
   widthMm: number;
   heightMm: number;
-  /** theprintspace's dropship price, pence excl. VAT. */
+  /** What theprintspace bills for the print, in pence. */
   cost: number;
-  /** Pence, VAT inclusive. */
+  /** Our price in pence. */
   price: number;
 };
 
@@ -85,23 +85,23 @@ const inches = (w: number, h: number, cost: number): FujiSize => ({
 });
 
 export const FUJI_SIZES: FujiSize[] = [
-  inches(4, 6, 370.8),
-  inches(5, 7, 471.6),
-  inches(8, 10, 835.2),
-  inches(10, 12, 1016.4),
-  inches(11, 14, 1101.6),
-  inches(12, 16, 1196.4),
-  inches(16, 20, 2024.4),
-  inches(20, 24, 2946),
-  inches(20, 30, 3678),
-  inches(30, 30, 5512.8),
-  inches(30, 40, 7346.4),
-  inches(40, 40, 8316),
-  inches(40, 50, 11088),
-  inches(40, 60, 12475.2),
-  inches(50, 50, 12475.2),
-  inches(50, 60, 14552.4),
-  inches(50, 75, 16632),
+  inches(4, 6, 444.96),
+  inches(5, 7, 565.92),
+  inches(8, 10, 1002.24),
+  inches(10, 12, 1219.68),
+  inches(11, 14, 1321.92),
+  inches(12, 16, 1435.68),
+  inches(16, 20, 2429.28),
+  inches(20, 24, 3535.2),
+  inches(20, 30, 4413.6),
+  inches(30, 30, 6615.36),
+  inches(30, 40, 8815.68),
+  inches(40, 40, 9979.2),
+  inches(40, 50, 13305.6),
+  inches(40, 60, 14970.24),
+  inches(50, 50, 14970.24),
+  inches(50, 60, 17462.88),
+  inches(50, 75, 19958.4),
 ];
 
 export function isFujiSize(format: Format): format is FujiSize {
@@ -115,7 +115,7 @@ export function isFujiSize(format: Format): format is FujiSize {
 export const DIGITAL_DOWNLOAD = {
   name: "DIGITAL",
   label: "Digital download",
-  price: 500,
+  price: IMAGE_FEE,
 } as const;
 
 export type DigitalDownload = typeof DIGITAL_DOWNLOAD;

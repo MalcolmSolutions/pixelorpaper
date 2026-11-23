@@ -53,7 +53,7 @@ describe("productJsonLd", () => {
     const [item, crumbs] = asJson(productJsonLd(product, category));
     assert.equal(item["@type"], "Product");
     assert.equal(item.url, "https://pixelorpaper.co.uk/products/misty-hills");
-    assert.equal(item.offers.price, "17.99");
+    assert.equal(item.offers.price, "21.99");
     assert.equal(item.offers.priceCurrency, "GBP");
     assert.equal(item.offers.availability, "https://schema.org/InStock");
     assert.equal(item.offers.shippingDetails.shippingRate.value, "7.74");

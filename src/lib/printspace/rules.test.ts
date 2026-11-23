@@ -39,13 +39,13 @@ describe("variantSpecs", () => {
       [...PRINT_SIZES, ...FUJI_SIZES].map((s) => s.name),
     );
     assert.ok(specs.every((s) => s.paper_id === "fuji-matt" && !s.is_framed));
-    assert.equal(specs[1].price_gbp, 17.99);
+    assert.equal(specs[1].price_gbp, 21.99);
     assert.deepEqual(
       [specs[1].print_width_mm, specs[1].print_height_mm],
       [210, 297],
     );
     const fuji = specs.find((s) => s.size_label === "8x10in")!;
-    assert.equal(fuji.price_gbp, 15.99);
+    assert.equal(fuji.price_gbp, 19.99);
   });
 
   it("gives every size different dimensions, so variants can be matched", () => {

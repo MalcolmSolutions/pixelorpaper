@@ -5,7 +5,7 @@ import { startCheckout } from "@/app/checkout/actions";
 import { SubmitButton } from "@/components/cart/submit-button";
 import { PrintThumbnail } from "@/components/print-thumbnail";
 import { getCart, MAX_QUANTITY, type CartLine } from "@/lib/cart";
-import { describeFormat, isDigital, vatIn } from "@/lib/print-sizes";
+import { describeFormat, isDigital } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -106,22 +106,11 @@ export default async function CartPage(props: PageProps<"/cart">) {
                 </div>
               )}
             </dl>
-            <dl className="space-y-1">
-              <div className="flex items-baseline justify-between gap-4">
-                <dt>
-                  Total{" "}
-                  <span className="text-sm text-ink-muted">incl. VAT</span>
-                </dt>
-                <dd className="text-lg tabular-nums">
-                  {formatPrice(cart.total)}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4 text-sm text-ink-muted">
-                <dt>Includes VAT at 20%</dt>
-                <dd className="tabular-nums">
-                  {formatPrice(vatIn(cart.total))}
-                </dd>
-              </div>
+            <dl className="flex items-baseline justify-between gap-4">
+              <dt>Total</dt>
+              <dd className="text-lg tabular-nums">
+                {formatPrice(cart.total)}
+              </dd>
             </dl>
             <form action={startCheckout} className="space-y-5">
               {hasDownloads && (

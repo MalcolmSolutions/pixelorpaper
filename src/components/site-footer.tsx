@@ -5,8 +5,8 @@ import { site } from "@/lib/site";
 
 const PROMISES = [
   {
-    title: "Clear UK VAT",
-    body: "All prices are in pounds sterling and include UK VAT. What you see is what you pay at checkout.",
+    title: "Clear pricing",
+    body: "All prices are in pounds sterling. What you see is what you pay, with one delivery charge per order of prints.",
   },
   {
     title: "White-label fulfilment",
@@ -78,7 +78,7 @@ export async function SiteFooter() {
             Rose.
           </p>
           <p>
-            {site.name} by Malcolm Rose. Prices shown in GBP including VAT.
+            {site.name} by Malcolm Rose. Prices shown in GBP.
           </p>
         </div>
       </div>

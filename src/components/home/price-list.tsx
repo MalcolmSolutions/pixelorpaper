@@ -4,7 +4,6 @@ import {
   DIGITAL_DOWNLOAD,
   FUJI_SIZES,
   PRINT_SIZES,
-  vatIn,
 } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
 
@@ -40,11 +39,8 @@ export function PriceList() {
                 {formatPrice(size.price)}
               </p>
             </div>
-            <p className="mt-0.5 flex justify-between gap-3 text-xs text-ink-muted tabular-nums">
-              <span>
-                {size.widthMm / 10} × {size.heightMm / 10} cm
-              </span>
-              <span>incl. {formatPrice(vatIn(size.price))} VAT</span>
+            <p className="mt-0.5 text-xs text-ink-muted tabular-nums">
+              {size.widthMm / 10} × {size.heightMm / 10} cm
             </p>
           </li>
         ))}
@@ -60,15 +56,13 @@ export function PriceList() {
           </p>
         </div>
         <p className="text-sm tabular-nums">
-          {formatPrice(DIGITAL_DOWNLOAD.price)}{" "}
-          <span className="text-xs text-ink-muted">
-            incl. {formatPrice(vatIn(DIGITAL_DOWNLOAD.price))} VAT
-          </span>
+          {formatPrice(DIGITAL_DOWNLOAD.price)}
         </p>
       </div>
       <p className="mt-8 text-sm text-ink-muted">
-        Every print is available in these four sizes, {FUJI_SIZES.length} more inch sizes or as
-        a download. All prices include UK VAT at 20%. UK tracked delivery is{" "}
+        Every print is available in these four sizes,{" "}
+        {FUJI_SIZES.length} more inch sizes or as a download. UK tracked
+        delivery is{" "}
         {formatPrice(DELIVERY_PRICE)} per order of prints, whatever the size or
         number; downloads have no delivery charge.
       </p>

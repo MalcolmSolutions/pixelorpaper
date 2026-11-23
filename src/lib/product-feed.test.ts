@@ -49,7 +49,7 @@ describe("productFeedXml", () => {
       a3,
       /<link>https:\/\/pixelorpaper\.co\.uk\/products\/misty-hills\?size=A3<\/link>/,
     );
-    assert.match(a3, /<g:price>21\.99 GBP<\/g:price>/);
+    assert.match(a3, /<g:price>25\.99 GBP<\/g:price>/);
     assert.match(a3, /<g:product_type>Photographic Prints &gt; Landscapes</);
   });
 

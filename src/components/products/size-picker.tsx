@@ -12,7 +12,6 @@ import {
   isDigital,
   isFujiSize,
   PRINT_SIZES,
-  vatIn,
   type Format,
 } from "@/lib/print-sizes";
 import { formatPrice } from "@/lib/utils";
@@ -44,10 +43,7 @@ export function SizePicker({
       <input type="hidden" name="size" value={selected.name} />
 
       <p className="text-lg tabular-nums">
-        {formatPrice(selected.price)}{" "}
-        <span className="text-sm text-ink-muted">
-          incl. {formatPrice(vatIn(selected.price))} VAT
-        </span>
+        {formatPrice(selected.price)}
       </p>
 
       <div className="space-y-3">

@@ -23,16 +23,16 @@ export type CartLine = {
   /** A printed size, or the digital download. */
   size: Format;
   quantity: number;
-  /** Pence, VAT inclusive. */
+  /** Pence. */
   unitPrice: number;
   lineTotal: number;
 };
 
 export type Cart = {
   lines: CartLine[];
-  /** Pence, VAT inclusive. */
+  /** Pence. */
   subtotal: number;
-  /** Delivery, pence incl. VAT; 0 for downloads only. */
+  /** Delivery, pence; 0 for downloads only. */
   delivery: number;
   /** Subtotal plus delivery. */
   total: number;

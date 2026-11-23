@@ -12,7 +12,6 @@ import {
   PRINT_SIZES,
   priceFromCost,
   sizeLabel,
-  vatIn,
 } from "@/lib/print-sizes";
 
 describe("formats", () => {
@@ -34,32 +33,27 @@ describe("formats", () => {
     }
   });
 
-  it("prices at theprintspace's cost excl. VAT + 50%, plus VAT, rounded up to .99", () => {
-    // A4: dropship £9.684 excl. VAT, + 50% = £14.526, + VAT = £17.43.
-    assert.equal(getFormat("A4")?.price, 1799);
-    // 8 × 10 in: £8.352 → £12.528 → £15.03.
-    assert.equal(getFormat("8x10in")?.price, 1599);
+  it("prices at theprintspace's charge + the £5 image fee, + 30%, rounded up to .99", () => {
+    // A4: £11.62 + £5 = £16.62, + 30% = £21.61.
+    assert.equal(getFormat("A4")?.price, 2199);
+    // 8 × 10 in: £10.02 + £5 = £15.02, + 30% = £19.53.
+    assert.equal(getFormat("8x10in")?.price, 1999);
     assert.deepEqual(
       PRINT_SIZES.map((s) => s.price),
-      [999, 1799, 2199, 4399],
+      [1599, 2199, 2599, 4399],
     );
     for (const size of [...PRINT_SIZES, ...FUJI_SIZES]) {
       assert.equal(size.price % 100, 99, size.name);
-      assert.ok(size.price >= size.cost * 1.5 * 1.2, size.name);
+      assert.ok(size.price >= (size.cost + 500) * 1.3, size.name);
     }
   });
 
   it("rounds up, never down, to the next .99", () => {
     // £16.99 exactly stays; a penny over goes to the next pound.
-    assert.equal(priceFromCost(1699 / 1.8), 1699);
-    assert.equal(priceFromCost(1700 / 1.8), 1799);
-    assert.equal(priceFromCost(1698.5 / 1.8), 1699);
-  });
-
-  it("works out the VAT included in a price", () => {
-    assert.equal(vatIn(1799), 300);
-    assert.equal(vatIn(500), 83);
-    assert.equal(vatIn(999), 167);
+    const costFor = (price: number) => price / 1.3 - 500;
+    assert.equal(priceFromCost(costFor(1699)), 1699);
+    assert.equal(priceFromCost(costFor(1700)), 1799);
+    assert.equal(priceFromCost(costFor(1698.5)), 1699);
   });
 
   it("labels sizes for customers", () => {
@@ -70,7 +64,7 @@ describe("formats", () => {
   });
 
   it("charges one flat delivery for prints, none for downloads only", () => {
-    // theprintspace's £6.45 excl. VAT, + 20% VAT.
+    // What theprintspace bills for delivery, passed on at cost.
     assert.equal(DELIVERY_PRICE, 774);
     const a4 = getFormat("A4")!;
     const big = getFormat("50x75in")!;
