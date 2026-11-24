@@ -4,6 +4,7 @@ export const site = {
   address: ["Peacehaven", "East Sussex", "BN10 7ST"],
   links: {
     etsy: "https://pixelorpaperart.etsy.com",
+    instagram: "https://www.instagram.com/pixelorpaper/",
   },
 };
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getCategories } from "@/lib/categories";
 import { collectionPath } from "@/lib/seo";
@@ -69,6 +70,18 @@ export async function SiteFooter() {
             <FooterLink href={site.links.etsy} external>
               Etsy
             </FooterLink>
+            <FooterLink href={site.links.instagram} external>
+              Instagram
+            </FooterLink>
+            <li className="pt-2">
+              <Image
+                src="/images/instagram-qr.png"
+                alt="QR code for @pixelorpaper on Instagram"
+                width={280}
+                height={322}
+                className="h-auto w-32"
+              />
+            </li>
           </FooterColumn>
         </div>
 
