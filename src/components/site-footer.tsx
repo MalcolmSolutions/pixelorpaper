@@ -85,12 +85,24 @@ export async function SiteFooter() {
           </FooterColumn>
         </div>
 
-        <div className="flex flex-col gap-2 border-t py-6 text-xs text-ink-muted md:flex-row md:justify-between">
+        <div className="flex flex-col gap-2 border-t py-6 text-xs text-ink-muted md:grid md:grid-cols-3 md:items-center">
           <p>
             Copyright {new Date().getFullYear()}. All images copyright Malcolm
             Rose.
           </p>
-          <p>
+          <p className="md:text-center">
+            Design by{" "}
+            <a
+              href="https://malcolmsolutions.co.uk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link"
+            >
+              MALCOLMSOLUTIONS
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </p>
+          <p className="md:text-right">
             {site.name} by Malcolm Rose. Prices shown in GBP.
           </p>
         </div>
