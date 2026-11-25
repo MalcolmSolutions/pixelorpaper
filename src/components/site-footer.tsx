@@ -42,6 +42,18 @@ export async function SiteFooter() {
             <p className="max-w-xs text-sm text-ink-muted">
               Modern art for real homes.
             </p>
+            <div className="space-y-1 pt-3">
+              <p className="eyebrow">Designed and built by</p>
+              <a
+                href="https://malcolmsolutions.co.uk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="nav-link text-sm"
+              >
+                MALCOLMSOLUTIONS
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </div>
           </div>
 
           <FooterColumn title="Shop">
@@ -85,24 +97,12 @@ export async function SiteFooter() {
           </FooterColumn>
         </div>
 
-        <div className="flex flex-col gap-2 border-t py-6 text-xs text-ink-muted md:grid md:grid-cols-3 md:items-center">
+        <div className="flex flex-col gap-2 border-t py-6 text-xs text-ink-muted md:flex-row md:justify-between">
           <p>
             Copyright {new Date().getFullYear()}. All images copyright Malcolm
             Rose.
           </p>
-          <p className="md:text-center">
-            Design by{" "}
-            <a
-              href="https://malcolmsolutions.co.uk"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link"
-            >
-              MALCOLMSOLUTIONS
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>
-          </p>
-          <p className="md:text-right">
+          <p>
             {site.name} by Malcolm Rose. Prices shown in GBP.
           </p>
         </div>
