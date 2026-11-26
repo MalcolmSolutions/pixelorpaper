@@ -20,7 +20,7 @@
     "images:prepare": "node scripts/prepare-images.mjs"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.8",
+    "@opennextjs/cloudflare": "^1.20.19",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.3",
     "next": "16.4.6",
